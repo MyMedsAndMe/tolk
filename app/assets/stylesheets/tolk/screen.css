@@ -143,16 +143,19 @@ ul.locales {
 }
 
 ul.locales li {
-  width: 300px;
   display: block;
   float: left;
-  margin: 0 10px 10px 0;
- /* background: #fff;
-   -webkit-border-radius: 5px;
-   -moz-border-radius: 5px;
-   border-radius: 5px;
-   border: 1px solid #e5e5e5;
-   padding: 5px 10px;*/
+  margin: 0 35px 10px 0;
+  background: #fff;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  border: 1px solid #e5e5e5;
+  padding: 5px 10px;
+}
+
+ul.locales li:hover {
+  background: #eee;
 }
 
 ul.locales a {
@@ -196,6 +199,7 @@ div.submit {
   -moz-border-radius-bottomleft: 20px;
   border-bottom-right-radius: 20px;
   border-bottom-left-radius: 20px;
+  position: relative;
 }
 
 span.updated {
@@ -347,7 +351,7 @@ table.translations .original textarea {
   display: none;
 }
 
-table.translations .original .interpolation, 
+table.translations .original .interpolation,
 table.translations .original .carriage_return,
 table.translations .original .boolean  {
   color: #2fadcf;
@@ -368,6 +372,15 @@ div.paginate {
   margin: 15px auto 20px;
   font-size: 12px;
   color: #777;
+}
+
+div.paginate .center-block {
+  margin: 0 auto;
+  display: inline-block;
+}
+
+div.paginate ul li {
+  float: left;
 }
 
 div.paginate a,
@@ -398,4 +411,34 @@ div.paginate .prev_page {
 div.paginate .disabled {
   color: #ccc;
   border-color: #eee;
+}
+
+.categories-selector {
+  position: relative;
+  margin-top: 5px;
+}
+
+.categories .category {
+  display: inline-block;
+  float: left;
+  margin-right: 10px;
+}
+
+.category > a {
+  text-decoration: none;
+  background-color: #299DC4;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: black;
+}
+
+.category > a:hover {
+  color: white;
+}
+
+div.sync-action {
+  display: inline-block;
+  position: absolute;
+  right: 25px;
+  bottom: 15px;
 }

@@ -14,7 +14,8 @@ module Tolk
     end
 
     def ensure_no_primary_locale
-      redirect_to tolk.locales_path if @locale.primary?
+      # HACK: would like to allow to edit primary locale
+      # redirect_to tolk.locales_path if @locale.primary?
     end
   end
 end

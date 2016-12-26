@@ -8,6 +8,14 @@
   <%= render :partial => "tolk/searches/form", :locals => { :locale => @locale } %>
 </div>
 
+<div class="categories-selector">
+  <ul class="categories">
+    <% @phrases.map(&:category).uniq.each do |category| %>
+      <li class="category"><a href="#<%= category.parameterize %>"><%= category.titleize %></a></li>
+    <% end %>
+  </ul>
+</div>
+
 <div class="translations">
 <% if @phrases.any? %>
   <%= form_for @locale do |locale_form| %>
@@ -31,8 +39,9 @@
               <span class="warning" title="Interpolation keys don't match">⚠</span>
             </td>
             <td class="original">
+              <a name="<%= phrase.category.parameterize %>"></a>
               <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), :disabled => true %>
-              
+
               <% if action_name == 'updated' %>
                 <div class="updated">
                   <span class="key">Updated</span>
@@ -58,7 +67,9 @@
       <p><%= locale_form.submit "Save changes", :class => 'save' %></p>
     </div>
     <div class="paginate">
-      <%= tolk_paginate @phrases %>
+      <div class="center-block">
+        <%= tolk_paginate @phrases %>
+      </div>
     </div>
   <% end %>
 <% else %>
@@ -66,4 +77,3 @@
   <p>&nbsp;</p>
 <% end %>
 </div>
-

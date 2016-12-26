@@ -9,7 +9,7 @@ module Tolk
     end
 
     def dump
-      File.open("#{destination}/#{name}.yml", "w+") do |file|
+      File.open("#{destination}/#{Tolk::Locale::CUSTOMER_PREFIX}.#{name}.yml", "w+") do |file|
         file.write(Tolk::YAML.dump(data))
       end
     end

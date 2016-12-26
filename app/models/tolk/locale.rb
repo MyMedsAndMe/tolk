@@ -5,6 +5,8 @@ module Tolk
   class Locale < ActiveRecord::Base
     include Tolk::Pagination::Methods
 
+    CUSTOMER_PREFIX = "customer".freeze
+
     self.table_name = "tolk_locales"
 
     def self._dump_path
@@ -12,11 +14,11 @@ module Tolk
       @dump_path ||= Tolk.config.dump_path.is_a?(Proc) ? instance_eval(&Tolk.config.dump_path) : Tolk.config.dump_path
     end
 
-    has_many :phrases, :through => :translations, :class_name => 'Tolk::Phrase'
-    has_many :translations, :class_name => 'Tolk::Translation', :dependent => :destroy
+    has_many :phrases, through: :translations, class_name: 'Tolk::Phrase'
+    has_many :translations, class_name: 'Tolk::Translation', dependent: :destroy
 
-    accepts_nested_attributes_for :translations, :reject_if => proc { |attributes| attributes['text'].blank? }
-    before_validation :remove_invalid_translations_from_target, :on => :update
+    accepts_nested_attributes_for :translations, reject_if: proc { |attributes| attributes['text'].blank? }
+    before_validation :remove_invalid_translations_from_target, on: :update
 
     cattr_accessor :locales_config_path
     self.locales_config_path = self._dump_path
@@ -54,6 +56,8 @@ module Tolk
       end
 
       def dump_all(*args)
+        # HACK: We allow to edit primary locale. Need to dump it.
+        primary_locale.dump(*args)
         secondary_locales.each { |locale| locale.dump(*args) }
       end
 
@@ -90,7 +94,7 @@ module Tolk
     end
 
     def count_phrases_without_translation
-      existing_ids = self.translations(:select => 'tolk_translations.phrase_id').map(&:phrase_id).uniq
+      existing_ids = self.translations(select: 'tolk_translations.phrase_id').map(&:phrase_id).uniq
       Tolk::Phrase.count - existing_ids.count
     end
 
@@ -101,7 +105,7 @@ module Tolk
     def phrases_without_translation(page = nil)
       phrases = Tolk::Phrase.all.order('tolk_phrases.key ASC')
 
-      existing_ids = self.translations(:select => 'tolk_translations.phrase_id').map(&:phrase_id).uniq
+      existing_ids = self.translations(select: 'tolk_translations.phrase_id').map(&:phrase_id).uniq
       phrases = phrases.where('tolk_phrases.id NOT IN (?)', existing_ids) if existing_ids.present?
 
       result = phrases.public_send(pagination_method, page)
@@ -138,7 +142,7 @@ module Tolk
 
       found_translations_ids = Tolk::Locale.primary_locale.translations.where(["tolk_translations.text LIKE ?", "%#{query}%"]).to_a.map(&:phrase_id).uniq
       existing_ids = self.translations.select('tolk_translations.phrase_id').to_a.map(&:phrase_id).uniq
-#      phrases = phrases.scoped(:conditions => ['tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)', existing_ids, found_translations_ids]) if existing_ids.present?
+      # phrases = phrases.scoped(conditions: ['tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)', existing_ids, found_translations_ids]) if existing_ids.present?
       phrases = phrases.where(['tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)', existing_ids, found_translations_ids]) if existing_ids.present?
       result = phrases.public_send(pagination_method, page)
       if Rails.version =~ /^4\.0/
@@ -176,14 +180,14 @@ module Tolk
 
     def get(key)
       if phrase = Tolk::Phrase.where(key: key).first
-        t = self.translations.where(:phrase_id => phrase.id).first
+        t = self.translations.where(phrase_id: phrase.id).first
         t.text if t
       end
     end
 
     def translations_with_html
-      translations = self.translations.all(:conditions => "tolk_translations.text LIKE '%>%' AND
-        tolk_translations.text LIKE '%<%' AND tolk_phrases.key NOT LIKE '%_html'", :joins => :phrase)
+      translations = self.translations.all(conditions: "tolk_translations.text LIKE '%>%' AND
+        tolk_translations.text LIKE '%<%' AND tolk_phrases.key NOT LIKE '%_html'", joins: :phrase)
       if Rails.version =~ /^4\.0/
         ActiveRecord::Associations::Preloader.new translations, :phrase
       else

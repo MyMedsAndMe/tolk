@@ -1,23 +1,25 @@
 module Tolk
   class LocalesController < Tolk::ApplicationController
-    before_action :find_locale, :only => [:show, :all, :update, :updated]
-    before_action :ensure_no_primary_locale, :only => [:all, :update, :show, :updated]
+    before_action :find_locale, only: [:show, :all, :update, :updated]
+    before_action :ensure_no_primary_locale, only: [:all, :update, :show, :updated]
 
     def index
-      @locales = Tolk::Locale.secondary_locales.sort_by(&:language_name)
+      # HACK: allows to select primary locale
+      # @locales = Tolk::Locale.secondary_locales.sort_by(&:language_name)
+      @locales = Tolk::Locale.all.sort_by(&:language_name)
     end
 
     def show
       respond_to do |format|
         format.html do
-          @phrases = @locale.phrases_without_translation(params[pagination_param])
+          @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key)
         end
 
-        format.atom { @phrases = @locale.phrases_without_translation(params[pagination_param]).per(50) }
+        format.atom { @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key).per(50) }
 
         format.yaml do
           data = @locale.to_hash
-          render :text => Tolk::YAML.dump(data)
+          render text: Tolk::YAML.dump(data)
         end
 
       end
@@ -40,7 +42,7 @@ module Tolk
 
     def create
       Tolk::Locale.create!(locale_params)
-      redirect_to :action => :index
+      redirect_to action: :index
     end
 
     def dump_all
@@ -57,14 +59,19 @@ module Tolk
         format.json do
           stats = @locales.collect do |locale|
             [locale.name, {
-              :missing => locale.count_phrases_without_translation,
-              :updated => locale.count_phrases_with_updated_translation,
-              :updated_at => locale.updated_at
+              missing: locale.count_phrases_without_translation,
+              updated: locale.count_phrases_with_updated_translation,
+              updated_at: locale.updated_at
             }]
           end
-          render :json => Hash[stats]
+          render json: Hash[stats]
         end
       end
+    end
+
+    def sync
+      Tolk::Locale.sync!
+      redirect_to root_path
     end
 
     private

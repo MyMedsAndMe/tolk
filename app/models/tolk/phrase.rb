@@ -1,12 +1,15 @@
 module Tolk
   class Phrase < ActiveRecord::Base
+    DOT = ".".freeze
+    CATEGORY_FIELD = "category".freeze
+
     self.table_name = "tolk_phrases"
 
-    validates_uniqueness_of :key
+    validates :key, uniqueness: true
 
     paginates_per 30
 
-    has_many :translations, :class_name => 'Tolk::Translation', :dependent => :destroy do
+    has_many :translations, class_name: "Tolk::Translation", dependent: :destroy do
       def primary
         to_a.detect {|t| t.locale_id == Tolk::Locale.primary_locale.id}
       end
@@ -18,10 +21,19 @@ module Tolk
 
     attr_accessor :translation
 
-#scope :red, -> { where(color: 'red') } rather than scope :red, -> { { conditions: { color: 'red' } } }
+    scope :containing_text, ->(query) { where Tolk::Phrase.arel_table[:key].matches("%#{query}%") }
 
-    scope :containing_text, lambda { |query|
-      where("tolk_phrases.key LIKE ?", "%#{query}%")
-    }
+    def self.category_field
+      dot = Arel::Nodes::Quoted.new(DOT)
+      Arel::Nodes::NamedFunction.new("SPLIT_PART", [Tolk::Phrase.arel_table[:key], dot, 2]).as(CATEGORY_FIELD)
+    end
+
+    def self.categories
+      Tolk::Phrase.group(CATEGORY_FIELD).order(CATEGORY_FIELD).pluck(category_field.to_sql)
+    end
+
+    def category
+      key.to_s.split(DOT).second
+    end
   end
 end

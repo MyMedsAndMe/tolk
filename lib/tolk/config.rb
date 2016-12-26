@@ -2,8 +2,6 @@ require 'active_support/core_ext/class/attribute_accessors'
 
 module Tolk
   module Config
-
-
     class << self
       # Mapping : a hash of the type { 'ar'    => 'Arabic' }
       attr_accessor :mapping
