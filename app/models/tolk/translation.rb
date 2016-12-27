@@ -2,17 +2,17 @@ module Tolk
   class Translation < ActiveRecord::Base
     self.table_name = "tolk_translations"
 
-    scope :containing_text, lambda {|query| where("tolk_translations.text LIKE ?", "%#{query}%") }
+    scope :containing_text, ->(q) { q.presence && where(Tolk::Translation.arel_table[:text].matches("%#{q}%")) }
 
     serialize :text
     serialize :previous_text
-    validate :validate_text_not_nil, :if => proc {|r| r.primary.blank? && !r.explicit_nil && !r.boolean?}
-    validate :check_matching_variables, :if => proc { |tr| tr.primary_translation.present? }
+    validate :validate_text_not_nil, if: proc {|r| r.primary.blank? && !r.explicit_nil && !r.boolean?}
+    validate :check_matching_variables, if: proc { |tr| tr.primary_translation.present? }
 
-    validates_uniqueness_of :phrase_id, :scope => :locale_id
+    validates_uniqueness_of :phrase_id, scope: :locale_id
 
-    belongs_to :phrase, :class_name => 'Tolk::Phrase'
-    belongs_to :locale, :class_name => 'Tolk::Locale'
+    belongs_to :phrase, class_name: 'Tolk::Phrase'
+    belongs_to :locale, class_name: 'Tolk::Locale'
     validates_presence_of :locale_id
 
     before_save :set_primary_updated
@@ -20,7 +20,7 @@ module Tolk
     before_save :set_previous_text
 
     attr_accessor :primary
-    before_validation :fix_text_type, :unless => proc {|r| r.primary }
+    before_validation :fix_text_type, unless: proc {|r| r.primary }
 
     attr_accessor :explicit_nil
     before_validation :set_explicit_nil

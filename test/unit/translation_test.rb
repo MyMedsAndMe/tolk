@@ -104,4 +104,16 @@ class TranslationTest < ActiveSupport::TestCase
       assert_equal ["The primary translation does not contain substitutions, so this should neither."], t.errors[:variables]
     end
   end
+
+  test "containing_text scope adds WHERE clause" do
+    where_clause = %{WHERE ("tolk_translations"."text" LIKE '%foo%')}
+    assert(Tolk::Translation.containing_text("foo").to_sql.end_with?(where_clause))
+  end
+
+  test "containing_text scope skippend for non-presence values" do
+    clause = %{SELECT "tolk_translations".* FROM "tolk_translations"}
+    ["", nil].each do |value|
+      assert_equal clause, Tolk::Translation.containing_text(value).to_sql
+    end
+  end
 end

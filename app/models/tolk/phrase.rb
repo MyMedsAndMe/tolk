@@ -21,15 +21,16 @@ module Tolk
 
     attr_accessor :translation
 
-    scope :containing_text, ->(query) { where Tolk::Phrase.arel_table[:key].matches("%#{query}%") }
+    scope :containing_text, ->(q) { q.presence && where(Tolk::Phrase.arel_table[:key].matches("%#{q}%")) }
+    scope :with_category, ->(cat) { cat.presence && where(category_field.eq(cat)) }
 
     def self.category_field
       dot = Arel::Nodes::Quoted.new(DOT)
-      Arel::Nodes::NamedFunction.new("SPLIT_PART", [Tolk::Phrase.arel_table[:key], dot, 2]).as(CATEGORY_FIELD)
+      Arel::Nodes::NamedFunction.new("SPLIT_PART", [Tolk::Phrase.arel_table[:key], dot, 2])
     end
 
     def self.categories
-      Tolk::Phrase.group(CATEGORY_FIELD).order(CATEGORY_FIELD).pluck(category_field.to_sql)
+      Tolk::Phrase.group(CATEGORY_FIELD).order(CATEGORY_FIELD).pluck(category_field.as(CATEGORY_FIELD).to_sql)
     end
 
     def category

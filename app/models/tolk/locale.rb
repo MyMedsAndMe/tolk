@@ -118,20 +118,20 @@ module Tolk
       result
     end
 
-    def search_phrases(query, scope, key_query, page = nil)
-      return [] unless query.present? || key_query.present?
+    def search_phrases(query, scope, key_query, page = nil, category = nil)
+      return [] unless [query, key_query, category].any?(&:present?)
 
       translations = case scope
-      when :origin
-        Tolk::Locale.primary_locale.translations.containing_text(query)
-      else # :target
-        self.translations.containing_text(query)
-      end
+                     when :origin
+                       Tolk::Locale.primary_locale.translations.containing_text(query)
+                     else # :target
+                       self.translations.containing_text(query)
+                     end
 
       phrases = Tolk::Phrase.all.order('tolk_phrases.key ASC')
-      phrases = phrases.containing_text(key_query)
+      phrases = phrases.containing_text(key_query).with_category(category)
 
-      phrases = phrases.where('tolk_phrases.id IN(?)', translations.map(&:phrase_id).uniq)
+      phrases = phrases.where(id: translations.select(:phrase_id))
       phrases.public_send(pagination_method, page)
     end
 

@@ -6,5 +6,8 @@
   <%= text_field_tag :q, params[:q] %>
   within key:
   <%= text_field_tag :k, params[:k] %>
+  under category:
+  <%= select_tag :c, options_for_select(Tolk::Phrase.categories.map { |c| [c.titleize, c] }, params[:c]), include_blank: true %>
+
   <%= submit_tag "Search", :name => nil %>
 <% end %>

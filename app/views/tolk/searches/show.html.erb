@@ -8,6 +8,14 @@
   <%= link_to "Completed translations", tolk.all_locale_path(@locale) %>
 </div>
 
+<div class="categories-selector">
+  <ul class="categories">
+    <% @phrases.map(&:category).uniq.each do |category| %>
+      <li class="category"><a href="#<%= category.parameterize %>"><%= category.titleize %></a></li>
+    <% end %>
+  </ul>
+</div>
+
 <div class="translations">
   <% if @phrases.any? %>
      <%= form_for @locale do |locale_form| %>
@@ -32,6 +40,7 @@
                 <span class="warning" title="Interpolation keys don't match">⚠</span>
               </td>
               <td class="original">
+                <a name="<%= phrase.category.parameterize %>"></a>
                 <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), :disabled => true %>
 
                 <% if params[:q].present? -%>
