@@ -28,6 +28,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'selenium-webdriver'
   s.add_development_dependency 'will_paginate'
 
+  s.add_development_dependency 'pry-rails'
+  s.add_development_dependency 'pry-byebug'
+
 
   if File.exists?('UPGRADING')
     s.post_install_message = File.read("UPGRADING")

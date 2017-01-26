@@ -1,11 +1,11 @@
 <h3 class="switch">Completed translations <span>(<%= link_to 'See phrases missing translation', @locale %>)</span></h3>
 
 <% if @locale.has_updated_translations? && action_name != 'updated' %>
-  <span class="notice">Some phrases have changed. <%= link_to "Update translations", tolk.updated_locale_path(@locale) %>.</span>
+  <span class="notice">Some phrases have changed. <%= link_to "Update translations", updated_locale_path(@locale) %>.</span>
 <% end %>
 
 <div class="search">
-  <%= render :partial => "tolk/searches/form", :locals => { :locale => @locale } %>
+  <%= render partial: "tolk/searches/form", locals: { locale: @locale } %>
 </div>
 
 <div class="categories-selector">
@@ -31,8 +31,8 @@
             <td class="translation">
               <%= hidden_field_tag :"translations[][id]", phrase.translation.id %>
               <%= hidden_field_tag :"translations[][locale_id]", phrase.translation.locale_id %>
-              <%= text_area_tag :"translations[][text]", format_i18n_text_area_value(phrase.translation.text), :class => 'locale',
-                                :onfocus => "$(this).up('tr').addClassName('active');", :onblur => "$(this).up('tr').removeClassName('active');" %>
+              <%= text_area_tag :"translations[][text]", format_i18n_text_area_value(phrase.translation.text), class: 'locale',
+                                onfocus: "$(this).up('tr').addClassName('active');", onblur: "$(this).up('tr').removeClassName('active');" %>
             </td>
             <td class="actions">
               <a class="copy" href="#" tabindex="-1" title="Copy original translation">&larr;</a><br>
@@ -40,7 +40,7 @@
             </td>
             <td class="original">
               <a name="<%= phrase.category.parameterize %>"></a>
-              <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), :disabled => true %>
+              <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), disabled: true %>
 
               <% if action_name == 'updated' %>
                 <div class="updated">
@@ -64,7 +64,7 @@
       <% end %>
     </table>
     <div class="table_submit">
-      <p><%= locale_form.submit "Save changes", :class => 'save' %></p>
+      <p><%= locale_form.submit "Save changes", class: 'save' %></p>
     </div>
     <div class="paginate">
       <div class="center-block">

@@ -14,7 +14,7 @@ class TranslationProcessTest < ActiveSupport::IntegrationCase
     assert locale.translations.empty?
 
     # Adding a new translation
-    pirate_path = tolk.locale_path(locale)
+    pirate_path = locale_path(locale)
     visit pirate_path
 
     fill_in_first_translation :with => "Dead men don't bite"
@@ -30,7 +30,7 @@ class TranslationProcessTest < ActiveSupport::IntegrationCase
     fill_in_first_translation :with => "Arrrr!"
     click_button 'Save changes'
 
-    assert_equal current_path, tolk.all_locale_path(locale)
+    assert_equal current_path, all_locale_path(locale)
     assert_equal 1, locale.translations.count
     assert_equal 'Arrrr!', locale.translations(true).first.text
   end
@@ -41,7 +41,7 @@ class TranslationProcessTest < ActiveSupport::IntegrationCase
     assert locale.translations.empty?
 
     # Adding a new translation
-    pirate_path = tolk.locale_path(locale)
+    pirate_path = locale_path(locale)
     visit pirate_path
 
     fill_in 'q', :with => 'hello_country'
@@ -61,7 +61,7 @@ class TranslationProcessTest < ActiveSupport::IntegrationCase
   end
 
   def add_locale(name)
-    visit tolk.root_path
+    visit root_path
     select name, :from => "select_tolk_locale_name"
     click_button 'Add'
 

@@ -2,6 +2,7 @@ module Tolk
   class Phrase < ActiveRecord::Base
     DOT = ".".freeze
     CATEGORY_FIELD = "category".freeze
+    DEFAULT_CATEGORY = "general".freeze
 
     self.table_name = "tolk_phrases"
 
@@ -25,8 +26,12 @@ module Tolk
     scope :with_category, ->(cat) { cat.presence && where(category_field.eq(cat)) }
 
     def self.category_field
-      dot = Arel::Nodes::Quoted.new(DOT)
-      Arel::Nodes::NamedFunction.new("SPLIT_PART", [Tolk::Phrase.arel_table[:key], dot, 2])
+      Arel::Nodes::SqlLiteral.new <<-SQL
+        CASE
+        WHEN array_length(regexp_split_to_array(key, '\\.'), 1) = 1 THEN 'general'
+        ELSE split_part(key, '.', 1)
+        END
+      SQL
     end
 
     def self.categories
@@ -34,7 +39,7 @@ module Tolk
     end
 
     def category
-      key.to_s.split(DOT).second
+      key.to_s.split(DOT).second || DEFAULT_CATEGORY
     end
   end
 end

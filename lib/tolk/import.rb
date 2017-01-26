@@ -13,10 +13,12 @@ module Tolk
             !l.ends_with?('.yml') ||
             l.match(/(.*\.){2,}/) # reject files of type xxx.en.yml
         }
-        locales = locales.reject(&locale_block_filter).map {|x| x.split('.').first }
+        locales = locales.reject(&locale_block_filter).map { |x| x.split('.').first }
         locales = locales - [Tolk::Locale.primary_locale.name]
-        locales.each {|l| import_locale(l) }
+        locales.each { |l| import_locale(l) }
       end
+
+      private
 
       def import_locale(locale_name)
         locale = Tolk::Locale.where(name: locale_name).first_or_create
@@ -27,7 +29,7 @@ module Tolk
         count = 0
 
         data.each do |key, value|
-          phrase = phrases.detect {|p| p.key == key}
+          phrase = phrases.detect { |p| p.key == key }
 
           if phrase
             translation = locale.translations.new(text: value, phrase: phrase)

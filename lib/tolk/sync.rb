@@ -6,30 +6,63 @@ module Tolk
 
     module ClassMethods
       def sync!
-        sync_phrases(load_translations)
+        Tolk::Phrase.update_all(obsolete: true)
+        locales = collect_locales
+        collect_translation_files(locales)
+        reload_translations(translation_files)
       end
 
-      def load_translations
-        I18n.backend.reload! if I18n.backend.initialized?
-        I18n.backend.instance_variable_set(:@initialized, true)
-        translations_files = Dir[Rails.root.join("config", "locales", "#{self::CUSTOMER_PREFIX}.*.{rb,yml}")]
-
-        I18n.backend.load_translations(translations_files)
-
-        translations = flat_hash(I18n.backend.send(:translations)[primary_locale.name.to_sym])
-        collect_customer_keys(translations.merge(read_primary_locale_file))
+      def collect_locales
+        self.primary_locale
+        reload_translations(translation_files)
+        I18n.backend.send(:translations).keys.map { |name| Tolk::Locale.find_or_create_by(name: name) }
       end
 
-      def read_primary_locale_file
-        primary_file = "#{self.locales_config_path}/#{self::CUSTOMER_PREFIX}.#{self.primary_locale_name}.yml"
-        if File.exists?(primary_file)
-          flat_hash(Tolk::YAML.load_file(primary_file)[self.primary_locale_name])
-        else
-          {}
+      def collect_translation_files(locales)
+        locales.each do |locale|
+          translation_files.each do |filename|
+            reload_translations(filename)
+            translations = flat_hash(I18n.backend.send(:translations)[locale.name.to_sym])
+            sync_phrases(locale, translations, filename)
+          end
         end
       end
 
+      def translation_files
+        @translation_files ||= Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
+      end
+
+      def reload_translations(paths)
+        I18n.backend.reload! if I18n.backend.initialized?
+        I18n.backend.instance_variable_set(:@initialized, true)
+        I18n.backend.load_translations(Array(paths))
+      end
+
+      private
+
+      # def load_translations
+      #   I18n.backend.reload! if I18n.backend.initialized?
+      #   I18n.backend.instance_variable_set(:@initialized, true)
+      #   translations_files = Dir[Rails.root.join("config", "locales", "#{self::CUSTOMER_PREFIX}.*.{rb,yml}")]
+
+      #   I18n.backend.load_translations(translations_files)
+
+      #   translations = flat_hash(I18n.backend.send(:translations)[primary_locale.name.to_sym])
+      #   collect_customer_keys(translations.merge(read_primary_locale_file))
+      # end
+
+      # def read_primary_locale_file
+      #   primary_file = "#{self.locales_config_path}/#{self::CUSTOMER_PREFIX}.#{self.primary_locale_name}.yml"
+      #   if File.exists?(primary_file)
+      #     flat_hash(Tolk::YAML.load_file(primary_file)[self.primary_locale_name])
+      #   else
+      #     {}
+      #   end
+      # end
+
       def flat_hash(data, prefix = "", result = {})
+        return {} if data.nil?
+
         data.each do |key, value|
           current_prefix = prefix.present? ? "#{prefix}.#{key}" : key
 
@@ -43,36 +76,60 @@ module Tolk
         result.stringify_keys
       end
 
-      private
+      def sync_phrases(locale, translations = {}, filename = nil)
+        # HACK: support old-style call
+        translations, locale = locale, Tolk::Locale.primary_locale if locale.is_a? Hash
 
-      def sync_phrases(translations)
-        primary_locale = self.primary_locale
+        return if translations.empty?
+        source = filename.delete("#{Rails.application.root}/")
+        source = filename.gsub("#{Rails.application.root}/", "")
 
-        # Handle deleted phrases
-        translations.present? ? Tolk::Phrase.destroy_all(["tolk_phrases.key NOT IN (?)", translations.keys]) : Tolk::Phrase.destroy_all
+        translations.each do |key, text|
+          phrase = Tolk::Phrase.find_or_create_by(key: key)
+          phrase.update_column(:obsolete, false)
 
-        phrases = Tolk::Phrase.all
-
-        translations.each do |key, value|
-          next if value.is_a?(Proc)
-          # Create phrase and primary translation if missing
-          existing_phrase = phrases.detect { |p| p.key == key } || Tolk::Phrase.create!(key: key)
-          translation = existing_phrase.translations.primary || primary_locale.translations.build(phrase_id: existing_phrase.id)
-          translation.text = value
-
-          if translation.changed? && !translation.new_record?
-            # Set the primary updated flag if the primary translation has changed and it is not a new record.
-            existing_phrase.translations.where(Tolk::Translation.arel_table[:locale_id].not_eq(primary_locale.id)).update_all(primary_updated: true)
+          translation = Tolk::Translation.find_or_initialize_by(locale: locale, phrase: phrase)
+          # next if translation.touched_by_customer?
+          translation.sync_in_progress = true
+          if translation.pristine?
+            translation.source = source
+            translation.text = text.presence || Tolk::Translation::NIL_TEXT
           end
-
-          translation.primary = true
-          translation.save!
+          begin
+            translation.save!
+          rescue => e
+            require "pry"; binding.pry
+          end
         end
+
+        # ↓↓↓↓ ==== OLD CODE ==== ↓↓↓↓
+        # primary_locale = self.primary_locale
+
+        # # Handle deleted phrases
+        # translations.present? ? Tolk::Phrase.destroy_all(["tolk_phrases.key NOT IN (?)", translations.keys]) : Tolk::Phrase.destroy_all
+
+        # phrases = Tolk::Phrase.all
+
+        # translations.each do |key, value|
+        #   next if value.is_a?(Proc)
+        #   # Create phrase and primary translation if missing
+        #   existing_phrase = phrases.detect { |p| p.key == key } || Tolk::Phrase.create!(key: key)
+        #   translation = existing_phrase.translations.primary || primary_locale.translations.build(phrase_id: existing_phrase.id)
+        #   translation.text = value
+
+        #   if translation.changed? && !translation.new_record?
+        #     # Set the primary updated flag if the primary translation has changed and it is not a new record.
+        #     existing_phrase.translations.where(Tolk::Translation.arel_table[:locale_id].not_eq(primary_locale.id)).update_all(primary_updated: true)
+        #   end
+
+        #   translation.primary = true
+        #   translation.save!
+        # end
       end
 
-      def collect_customer_keys(flat_hash)
-        flat_hash.select { |k, v| k.starts_with? self::CUSTOMER_PREFIX }
-      end
+      # def collect_customer_keys(flat_hash)
+      #   flat_hash.select { |k, v| k.starts_with? self::CUSTOMER_PREFIX }
+      # end
     end
   end
 end

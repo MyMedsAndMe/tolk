@@ -8,6 +8,14 @@ module Tolk
       app.config.assets.precompile += ['tolk/libraries.js']
     end
 
+    initializer :append_migrations do |app|
+      unless app.root.to_s.match root.to_s
+        config.paths["db/migrate"].expanded.each do |expanded_path|
+          app.config.paths["db/migrate"] << expanded_path
+        end
+      end
+    end
+
     # We need one of the two pagination engines loaded by this point.
     # We don't care which one, just one of them will do.
     begin

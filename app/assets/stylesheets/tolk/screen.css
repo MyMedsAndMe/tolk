@@ -61,6 +61,7 @@ div#head {
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   font-size: 18px;
+  position: relative;
 }
 
 div#head a {
@@ -123,6 +124,13 @@ div#head span:last-child {
   -moz-border-radius-bottomright: 10px;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
+}
+
+div#head span.main-app-link {
+  display: inline-block;
+  position: absolute;
+  right: 12px;
+  bottom: 15px;
 }
 
 h2,

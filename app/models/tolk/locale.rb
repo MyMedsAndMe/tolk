@@ -1,5 +1,5 @@
-require 'tolk/config'
-require 'tolk/pagination'
+require "tolk/config"
+require "tolk/pagination"
 
 module Tolk
   class Locale < ActiveRecord::Base
@@ -14,10 +14,10 @@ module Tolk
       @dump_path ||= Tolk.config.dump_path.is_a?(Proc) ? instance_eval(&Tolk.config.dump_path) : Tolk.config.dump_path
     end
 
-    has_many :phrases, through: :translations, class_name: 'Tolk::Phrase'
-    has_many :translations, class_name: 'Tolk::Translation', dependent: :destroy
+    has_many :phrases, through: :translations, class_name: "Tolk::Phrase"
+    has_many :translations, class_name: "Tolk::Translation", dependent: :destroy
 
-    accepts_nested_attributes_for :translations, reject_if: proc { |attributes| attributes['text'].blank? }
+    accepts_nested_attributes_for :translations, reject_if: proc { |attributes| attributes["text"].blank? }
     before_validation :remove_invalid_translations_from_target, on: :update
 
     cattr_accessor :locales_config_path
@@ -27,16 +27,15 @@ module Tolk
     self.primary_locale_name = Tolk.config.primary_locale_name || I18n.default_locale.to_s
 
     include Tolk::Sync
-    include Tolk::Import
 
     validates_uniqueness_of :name
     validates_presence_of :name
 
     cattr_accessor :special_prefixes
-    self.special_prefixes = ['activerecord.attributes']
+    self.special_prefixes = ["activerecord.attributes"]
 
     cattr_accessor :special_keys
-    self.special_keys = ['activerecord.models']
+    self.special_keys = ["activerecord.models"]
 
     class << self
       def primary_locale(reload = false)
@@ -57,8 +56,7 @@ module Tolk
 
       def dump_all(*args)
         # HACK: We allow to edit primary locale. Need to dump it.
-        primary_locale.dump(*args)
-        secondary_locales.each { |locale| locale.dump(*args) }
+        all.each { |locale| locale.dump(*args) }
       end
 
       def dump_yaml(name, *args)
@@ -70,7 +68,7 @@ module Tolk
       end
 
       # http://cldr.unicode.org/index/cldr-spec/plural-rules - TODO: usage of 'none' isn't standard-conform
-      PLURALIZATION_KEYS = ['none', 'zero', 'one', 'two', 'few', 'many', 'other']
+      PLURALIZATION_KEYS = ["none", "zero", "one", "two", "few", "many", "other"].freeze
       def pluralization_data?(data)
         keys = data.keys.map(&:to_s)
         keys.all? {|k| PLURALIZATION_KEYS.include?(k) }
@@ -78,35 +76,41 @@ module Tolk
     end
 
     def dump(to = self.locales_config_path, exporter = Tolk::Export)
-      exporter.dump(name: name, data: to_hash, destination: to)
+      query = translations.includes(:phrase).references(:phrases).order(Tolk::Phrase.arel_table[:key])
+
+      query.group_by { |r| r.source  }.each do |filename, translations|
+        data = { name => hash_from_records(translations) }
+        path = Rails.root.join(filename)
+        exporter.dump(name: name, data: data, destination: path)
+      end
     end
 
     def has_updated_translations?
-      translations.where('tolk_translations.primary_updated' => true).count > 0
+      translations.where("tolk_translations.primary_updated" => true).count > 0
     end
 
     def phrases_with_translation(page = nil)
-      find_phrases_with_translations(page, :'tolk_translations.primary_updated' => false)
+      find_phrases_with_translations(page, :"tolk_translations.primary_updated" => false)
     end
 
     def phrases_with_updated_translation(page = nil)
-      find_phrases_with_translations(page, :'tolk_translations.primary_updated' => true)
+      find_phrases_with_translations(page, :"tolk_translations.primary_updated" => true)
     end
 
     def count_phrases_without_translation
-      existing_ids = self.translations(select: 'tolk_translations.phrase_id').map(&:phrase_id).uniq
+      existing_ids = self.translations(select: "tolk_translations.phrase_id").map(&:phrase_id).uniq
       Tolk::Phrase.count - existing_ids.count
     end
 
     def count_phrases_with_updated_translation(page = nil)
-      find_phrases_with_translations(page, :'tolk_translations.primary_updated' => true).count
+      find_phrases_with_translations(page, :"tolk_translations.primary_updated" => true).count
     end
 
     def phrases_without_translation(page = nil)
-      phrases = Tolk::Phrase.all.order('tolk_phrases.key ASC')
+      phrases = Tolk::Phrase.all.order("tolk_phrases.key ASC")
 
-      existing_ids = self.translations(select: 'tolk_translations.phrase_id').map(&:phrase_id).uniq
-      phrases = phrases.where('tolk_phrases.id NOT IN (?)', existing_ids) if existing_ids.present?
+      existing_ids = self.translations(select: "tolk_translations.phrase_id").map(&:phrase_id).uniq
+      phrases = phrases.where("tolk_phrases.id NOT IN (?)", existing_ids) if existing_ids.present?
 
       result = phrases.public_send(pagination_method, page)
       if Rails.version =~ /^4\.0/
@@ -128,7 +132,7 @@ module Tolk
                        self.translations.containing_text(query)
                      end
 
-      phrases = Tolk::Phrase.all.order('tolk_phrases.key ASC')
+      phrases = Tolk::Phrase.all.order("tolk_phrases.key ASC")
       phrases = phrases.containing_text(key_query).with_category(category)
 
       phrases = phrases.where(id: translations.select(:phrase_id))
@@ -138,12 +142,11 @@ module Tolk
     def search_phrases_without_translation(query, page = nil)
       return phrases_without_translation(page) unless query.present?
 
-      phrases = Tolk::Phrase.all.order('tolk_phrases.key ASC')
+      phrases = Tolk::Phrase.all.order("tolk_phrases.key ASC")
 
       found_translations_ids = Tolk::Locale.primary_locale.translations.where(["tolk_translations.text LIKE ?", "%#{query}%"]).to_a.map(&:phrase_id).uniq
-      existing_ids = self.translations.select('tolk_translations.phrase_id').to_a.map(&:phrase_id).uniq
-      # phrases = phrases.scoped(conditions: ['tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)', existing_ids, found_translations_ids]) if existing_ids.present?
-      phrases = phrases.where(['tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)', existing_ids, found_translations_ids]) if existing_ids.present?
+      existing_ids = self.translations.select("tolk_translations.phrase_id").to_a.map(&:phrase_id).uniq
+      phrases = phrases.where(["tolk_phrases.id NOT IN (?) AND tolk_phrases.id IN(?)", existing_ids, found_translations_ids]) if existing_ids.present?
       result = phrases.public_send(pagination_method, page)
       if Rails.version =~ /^4\.0/
         ActiveRecord::Associations::Preloader.new result, :translations
@@ -155,14 +158,7 @@ module Tolk
     end
 
     def to_hash
-      data = translations.includes(:phrase).references(:phrases).order(phrases.arel_table[:key]).
-        each_with_object({}) do |translation, locale|
-          if translation.phrase.key.include?(".")
-            locale.deep_merge!(unsquish(translation.phrase.key, translation.value))
-          else
-            locale[translation.phrase.key] = translation.value
-          end
-        end
+      data = hash_from_records(translations.includes(:phrase).references(:phrases).order(phrases.arel_table[:key]))
       { name => data }
     end
 
@@ -212,6 +208,15 @@ module Tolk
 
     private
 
+    def hash_from_records(records)
+      records.each_with_object({}) do |translation, locale|
+        if translation.phrase.key.include?(".")
+          locale.deep_merge!(unsquish(translation.phrase.key, translation.value))
+        else
+          locale[translation.phrase.key] = translation.value
+        end
+      end
+    end
 
     def remove_invalid_translations_from_target
       self.translations.target.dup.each do |t|
@@ -226,7 +231,10 @@ module Tolk
     end
 
     def find_phrases_with_translations(page, conditions = {})
-      result = Tolk::Phrase.where({ :'tolk_translations.locale_id' => self.id }.merge(conditions)).joins(:translations).order('tolk_phrases.key ASC').public_send(pagination_method, page)
+      result = Tolk::Phrase.where({ :"tolk_translations.locale_id" => id }.merge(conditions))
+        .joins(:translations)
+        .order("tolk_phrases.key ASC")
+        .public_send(pagination_method, page)
 
       result.each do |phrase|
         phrase.translation = phrase.translations.for(self)

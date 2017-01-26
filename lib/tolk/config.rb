@@ -21,10 +21,15 @@ module Tolk
       # strip translation texts automatically
       attr_accessor :strip_texts
 
+      # check current and primary translation for variable existence
+      attr_accessor :check_variable
+
       def reset
         @exclude_gems_token = false
 
         @strip_texts = true
+
+        @check_variable = true
 
         @block_xxx_en_yml_locale_files = true # keep compat with older versions
 
