@@ -21,7 +21,6 @@ module Tolk
           data = @locale.to_hash
           render text: Tolk::YAML.dump(data)
         end
-
       end
     end
 

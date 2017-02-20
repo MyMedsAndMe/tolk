@@ -4,9 +4,9 @@
     <% @locales.each do |locale| %>
       <li>
         <%= link_to locale.language_name, locale %>
-        <% missing_count = locale.count_phrases_without_translation %>
-        <% if missing_count > 0 %>
-          <span class="missing_translations"><%= missing_count %></span>
+        <% missing = locale.translation_percent %>
+        <% if missing < 100 %>
+          <span class="missing_translations"><%= locale.translation_percent %>% complete</span>
         <% end %>
       </li>
     <% end %>

@@ -102,6 +102,11 @@ module Tolk
       Tolk::Phrase.count - existing_ids.count
     end
 
+    def translation_percent
+      coef = 1 - count_phrases_without_translation.to_f / Tolk::Phrase.count.to_f
+      (coef * 100).round(2)
+    end
+
     def count_phrases_with_updated_translation(page = nil)
       find_phrases_with_translations(page, :"tolk_translations.primary_updated" => true).count
     end
