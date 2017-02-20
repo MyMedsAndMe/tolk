@@ -5,11 +5,12 @@ module Tolk
     NIL_TEXT = "~".freeze
     YAML_ALIAS_MARKER = "*".freeze
     YAML_COMMENT_MARKER = "#".freeze
+    TOBE_TRANSLATED_MARKER = "#TR".freeze
 
     self.table_name = "tolk_translations"
 
-    belongs_to :phrase, class_name: 'Tolk::Phrase'
-    belongs_to :locale, class_name: 'Tolk::Locale'
+    belongs_to :phrase, class_name: "Tolk::Phrase"
+    belongs_to :locale, class_name: "Tolk::Locale"
 
     serialize :text
     serialize :previous_text

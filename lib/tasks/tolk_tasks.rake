@@ -1,22 +1,23 @@
+# frozen_string_literal: true
 namespace :tolk do
   desc "Update locale"
-  task :update_locale, [:old_name, :new_name] => :environment do |t, args|
+  task :update_locale, [:old_name, :new_name] => :environment do |_t, args|
     old_name, new_name = args[:old_name], args[:new_name]
     puts Tolk::Locale.rename(old_name, new_name)
   end
 
   desc "Add database tables, copy over the assets, and import existing translations"
   task setup: :environment do
-    system 'rails g tolk:install'
+    system "rails g tolk:install"
 
-    Rake::Task['db:migrate'].invoke
-    Rake::Task['tolk:sync'].invoke
+    Rake::Task["db:migrate"].invoke
+    Rake::Task["tolk:sync"].invoke
   end
 
   desc "Sync Tolk with the default locale's yml file"
   task sync: :environment do
     Tolk::Locale.sync!
-    Rake::Task['tolk:dump_all'].invoke
+    Rake::Task["tolk:dump_all"].invoke
   end
 
   desc "Generate yml files for all the locales defined in Tolk"
@@ -25,14 +26,14 @@ namespace :tolk do
   end
 
   desc "Generate a single yml file for a specific locale"
-  task :dump_yaml, [:locale] => :environment do |t, args|
+  task :dump_yaml, [:locale] => :environment do |_t, args|
     locale = args[:locale]
     Tolk::Locale.dump_yaml(locale)
   end
 
   desc "[DEPRECATED] Please use tolk:sync. Imports data all non default locale yml files to Tolk"
   task import: :environment do
-    Rake::Task['tolk:sync'].invoke
+    Rake::Task["tolk:sync"].invoke
   end
 
   desc "Show all the keys potentially containing HTML values and no _html postfix"

@@ -1,4 +1,4 @@
-class MigrateTolk < ActiveRecord::Migration
+class TolkMigrateTolk < ActiveRecord::Migration
   def self.up
     create_table "tolk_locales", :force => true do |t|
       t.string   "name"

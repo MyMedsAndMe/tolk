@@ -40,26 +40,6 @@ module Tolk
 
       private
 
-      # def load_translations
-      #   I18n.backend.reload! if I18n.backend.initialized?
-      #   I18n.backend.instance_variable_set(:@initialized, true)
-      #   translations_files = Dir[Rails.root.join("config", "locales", "#{self::CUSTOMER_PREFIX}.*.{rb,yml}")]
-
-      #   I18n.backend.load_translations(translations_files)
-
-      #   translations = flat_hash(I18n.backend.send(:translations)[primary_locale.name.to_sym])
-      #   collect_customer_keys(translations.merge(read_primary_locale_file))
-      # end
-
-      # def read_primary_locale_file
-      #   primary_file = "#{self.locales_config_path}/#{self::CUSTOMER_PREFIX}.#{self.primary_locale_name}.yml"
-      #   if File.exists?(primary_file)
-      #     flat_hash(Tolk::YAML.load_file(primary_file)[self.primary_locale_name])
-      #   else
-      #     {}
-      #   end
-      # end
-
       def flat_hash(data, prefix = "", result = {})
         return {} if data.nil?
 
@@ -89,47 +69,28 @@ module Tolk
           phrase.update_column(:obsolete, false)
 
           translation = Tolk::Translation.find_or_initialize_by(locale: locale, phrase: phrase)
-          # next if translation.touched_by_customer?
+
           translation.sync_in_progress = true
           if translation.pristine?
             translation.source = source
-            translation.text = text.presence || Tolk::Translation::NIL_TEXT
+            translation.text = store?(text) ? text.presence : Tolk::Translation::NIL_TEXT
           end
-          begin
-            translation.save!
-          rescue => e
-            require "pry"; binding.pry
-          end
+          translation.save!
         end
-
-        # ↓↓↓↓ ==== OLD CODE ==== ↓↓↓↓
-        # primary_locale = self.primary_locale
-
-        # # Handle deleted phrases
-        # translations.present? ? Tolk::Phrase.destroy_all(["tolk_phrases.key NOT IN (?)", translations.keys]) : Tolk::Phrase.destroy_all
-
-        # phrases = Tolk::Phrase.all
-
-        # translations.each do |key, value|
-        #   next if value.is_a?(Proc)
-        #   # Create phrase and primary translation if missing
-        #   existing_phrase = phrases.detect { |p| p.key == key } || Tolk::Phrase.create!(key: key)
-        #   translation = existing_phrase.translations.primary || primary_locale.translations.build(phrase_id: existing_phrase.id)
-        #   translation.text = value
-
-        #   if translation.changed? && !translation.new_record?
-        #     # Set the primary updated flag if the primary translation has changed and it is not a new record.
-        #     existing_phrase.translations.where(Tolk::Translation.arel_table[:locale_id].not_eq(primary_locale.id)).update_all(primary_updated: true)
-        #   end
-
-        #   translation.primary = true
-        #   translation.save!
-        # end
       end
 
-      # def collect_customer_keys(flat_hash)
-      #   flat_hash.select { |k, v| k.starts_with? self::CUSTOMER_PREFIX }
-      # end
+      def store?(value)
+        value.present? && !marked_for_translation?(value)
+      end
+
+      def marked_for_translation?(value)
+        case value
+        when Array
+          value.any? { |v| v.to_s.start_with?(Tolk::Translation::TOBE_TRANSLATED_MARKER) }
+        when String
+          value.to_s.start_with?(Tolk::Translation::TOBE_TRANSLATED_MARKER)
+        end
+      end
     end
   end
 end
