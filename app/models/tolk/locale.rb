@@ -6,6 +6,7 @@ module Tolk
     include Tolk::Pagination::Methods
 
     CUSTOMER_PREFIX = "customer".freeze
+    DEFAULT_PATH_TEMPLATE = "config/locales/%{name}.yml".freeze
 
     self.table_name = "tolk_locales"
 
@@ -78,9 +79,14 @@ module Tolk
     def dump(to = self.locales_config_path, exporter = Tolk::Export)
       query = translations.includes(:phrase).references(:phrases).order(Tolk::Phrase.arel_table[:key])
 
-      query.group_by { |r| r.source  }.each do |filename, translations|
+      query.group_by { |r| r.phrase.category }.each do |category, translations|
         data = { name => hash_from_records(translations) }
-        path = Rails.root.join(filename)
+        filename = if Tolk::Phrase::DEFAULT_CATEGORY == category
+                     name
+                   else
+                     "#{category.tr(' ', '_').downcase}.#{name}"
+                   end
+        path = Rails.root.join(format(DEFAULT_PATH_TEMPLATE, name: filename))
         exporter.dump(name: name, data: data, destination: path)
       end
     end

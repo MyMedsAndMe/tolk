@@ -13,6 +13,7 @@ module Tolk
       respond_to do |format|
         format.html do
           @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key)
+          @phrases = @phrases.where(category: params[:category]) if params[:category]
         end
 
         format.atom { @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key).per(50) }

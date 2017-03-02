@@ -1,7 +1,6 @@
+# frozen_string_literal: true
 module Tolk
   class Translation < ActiveRecord::Base
-    FAKE_SOURCE = Struct.new(:source)
-    DEFAULT_PATH_TEMPLATE = "config/locales/%{name}.yml".freeze
     NIL_TEXT = "~".freeze
     YAML_ALIAS_MARKER = "*".freeze
     YAML_COMMENT_MARKER = "#".freeze
@@ -19,7 +18,6 @@ module Tolk
     validate :check_matching_variables, if: proc { |tr| tr.primary_translation.present? }
     validates_uniqueness_of :phrase_id, scope: :locale_id
     validates_presence_of :locale_id
-    validates :source, presence: true
 
     before_save :set_primary_updated
     before_save :set_previous_text
@@ -31,7 +29,6 @@ module Tolk
 
     attr_accessor :explicit_nil
     before_validation :set_explicit_nil
-    before_validation :ensure_source_known
 
     attr_accessor :sync_in_progress
 
@@ -167,15 +164,6 @@ module Tolk
     def validate_text_not_nil
       return unless text.nil?
       errors.add :text, :blank
-    end
-
-    def ensure_source_known
-      return if source.present?
-
-      default_source = Proc.new { FAKE_SOURCE.new(DEFAULT_PATH_TEMPLATE % { name: locale.name }) }
-
-      self.source = primary_translation.try(:source).presence ||
-          phrase.try(:translations).to_a.find(default_source) { |t| t.source.present? }.source
     end
   end
 end
