@@ -1,0 +1,13 @@
+<div class="categories-selector">
+  <div class="categories-title">
+    Domains
+  </div>
+  <ul class="categories">
+    <% Tolk::Phrase::categories.each do |category| %>
+      <li class="category">
+        <%= link_to category, locale_path(locale, category: category) %>
+      </li>
+    <% end %>
+  </ul>
+</div>
+

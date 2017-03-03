@@ -242,6 +242,7 @@ div.table_submit input.save {
 div.translations {
   width: 96%;
   text-align: center;
+  clear: both;
 }
 
 span.notice {
@@ -426,17 +427,26 @@ div.paginate .disabled {
   margin-top: 5px;
 }
 
+.categories-title {
+  padding: 14px;
+  margin: 11px 0;
+  background-color: #eee;
+  border-radius: 4px;
+  font-size: 14pt;
+  font-weight: bold;
+}
+
 .categories .category {
   display: inline-block;
   float: left;
-  margin-right: 10px;
+  margin: 10px 10px 20px 0;
 }
 
 .category > a {
   text-decoration: none;
   background-color: #299DC4;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
   color: black;
 }
 

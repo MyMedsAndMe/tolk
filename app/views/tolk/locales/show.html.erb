@@ -12,13 +12,7 @@
   <%= render partial: "tolk/searches/form", locals: { locale: @locale } %>
 </div>
 
-<div class="categories-selector">
-  <ul class="categories">
-    <% @phrases.map(&:category).uniq.each do |category| %>
-      <li class="category"><a href="#<%= category.parameterize %>"><%= category.titleize %></a></li>
-    <% end %>
-  </ul>
-</div>
+<%= render partial: "tolk/locales/categories", locals: { locale: @locale } %>
 
 <div class="translations">
   <% if @phrases.any? %>
@@ -69,6 +63,5 @@
     </div>
   <% else %>
     <p style="text-align: left">There aren't any missing or updated phrases that need translation.</p>
-    <p>&nbsp;</p>
   <% end %>
 </div>
