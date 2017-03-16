@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 module Tolk
   class Translation < ActiveRecord::Base
-    NIL_TEXT = "~".freeze
-    YAML_ALIAS_MARKER = "*".freeze
-    YAML_COMMENT_MARKER = "#".freeze
-    TOBE_TRANSLATED_MARKER = "#TR".freeze
+    NIL_TEXT = "~"
+    YAML_ALIAS_MARKER = "*"
+    YAML_COMMENT_MARKER = "#"
+    TOBE_TRANSLATED_MARKER = "#TR"
 
     self.table_name = "tolk_translations"
 
@@ -121,20 +121,10 @@ module Tolk
       ![YAML_COMMENT_MARKER, YAML_ALIAS_MARKER].any? { |m| text.strip.start_with? m }
     end
 
-    # def yaml_alias?
-    #   text.start_with? YAML_ALIAS_MARKER
-    # end
-
+    # NOTE: Text type conversion leads to converting "Yes" -> true.
+    #       This will brake yes_no: keys.
     def fix_text_type
-      return true if text == NIL_TEXT
-
-      self.text = text.is_a?(String) && yaml_load_safe? ? YAML.load(text.strip) : text
-
       true
-    rescue Psych::SyntaxError
-      # NOTE: Do nothing. Looks like text contains something like `:` so leave it as-is
-    rescue => e
-      require "pry"; binding.pry
     end
 
     def set_primary_updated

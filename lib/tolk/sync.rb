@@ -10,7 +10,8 @@ module Tolk
         Tolk::Phrase.update_all(obsolete: true)
         locales = collect_locales
         collect_translation_files(locales)
-        reload_translations(translation_files)
+        # NOTE: Have to use fresh file listing
+        reload_translations(Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")])
       end
 
       def collect_locales
