@@ -95,26 +95,16 @@ module Tolk
       translations.where("tolk_translations.primary_updated" => true).count > 0
     end
 
-    def phrases_with_translation(page = nil)
-      find_phrases_with_translations(page, :"tolk_translations.primary_updated" => false)
-    end
-
     def phrases_with_updated_translation(page = nil)
       find_phrases_with_translations(page, :"tolk_translations.primary_updated" => true)
     end
 
-    def count_phrases_without_translation
-      existing_ids = self.translations(select: "tolk_translations.phrase_id").map(&:phrase_id).uniq
-      Tolk::Phrase.count - existing_ids.count
-    end
-
-    def translation_percent
-      coef = 1 - count_phrases_without_translation.to_f / Tolk::Phrase.count.to_f
-      (coef * 100).round(2)
-    end
-
     def count_phrases_with_updated_translation(page = nil)
       find_phrases_with_translations(page, :"tolk_translations.primary_updated" => true).count
+    end
+
+    def phrases_with_translation(page = nil)
+      find_phrases_with_translations(page, :"tolk_translations.primary_updated" => false)
     end
 
     def phrases_without_translation(page = nil)
@@ -131,6 +121,26 @@ module Tolk
       end
 
       result
+    end
+
+    def count_phrases_without_translation(category = nil)
+      ph = Tolk::Phrase.arel_table
+      tr = Tolk::Translation.arel_table
+
+      query = ph.project(ph[:id].count)
+        .join(tr, Arel::Nodes::OuterJoin)
+        .on(tr[:phrase_id].eq(ph[:id]).and(tr[:locale_id].in([nil, id])))
+        .where(tr[:locale_id].eq(nil))
+
+      query = query.where(ph[:category].eq(category)) if category
+
+      result = ActiveRecord::Base.connection.exec_query(query.to_sql)
+      result.rows.first.first.to_i
+    end
+
+    def translation_percent
+      coef = 1 - count_phrases_without_translation.to_f / Tolk::Phrase.count.to_f
+      (coef * 100).round(2)
     end
 
     def search_phrases(query, scope, key_query, page = nil, category = nil)

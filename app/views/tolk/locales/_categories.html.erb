@@ -5,9 +5,8 @@
   <ul class="categories">
     <% Tolk::Phrase::categories.each do |category| %>
       <li class="category">
-        <%= link_to category, locale_path(locale, category: category) %>
+        <%= link_to(category, locale_path(locale, category: category), class: current_category == category ? "active" : "") %>
       </li>
     <% end %>
   </ul>
 </div>
-

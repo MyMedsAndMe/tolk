@@ -1,18 +1,20 @@
-<h3 class="search">
-  <%= render :partial => "form", :locals => { :locale => @locale } %>
+<%= render partial: "tolk/locales/categories", locals: { locale: @locale, current_category: params[:category] } %>
+
+<h3 class="switch">
+  Phrases missing translation (<%= @locale.count_phrases_without_translation(params[:category]) %>)
+  <span>(<%= link_to "See all translations", all_locale_path(@locale, category: params[:category]) %>)</span>
 </h3>
 
-<div class="search_exits">
-  <%= link_to "Phrases missing translation", @locale %>
-  &nbsp;
-  <%= link_to "Completed translations", all_locale_path(@locale) %>
+<div class="search">
+  <%= render partial: "form", locals: { locale: @locale } %>
 </div>
-
-<%= render partial: "tolk/locales/categories", locals: { locale: @locale } %>
 
 <div class="translations">
   <% if @phrases.any? %>
      <%= form_for @locale do |locale_form| %>
+
+     <%= render partial: "tolk/locales/phrases_submit_panel", locals: { form: locale_form, phrases: @phrases } %>
+
       <table class="translations">
         <tr>
           <th class="translation"><%= @locale.language_name -%></th>
@@ -21,13 +23,13 @@
         </tr>
         <% @phrases.each do |phrase| %>
 
-          <% if translation = phrase.translations.where(locale_id: @locale.id).first || Tolk::Translation.new(:locale => @locale, :phrase => phrase) %>
+          <% if translation = phrase.translations.where(locale_id: @locale.id).first || Tolk::Translation.new(locale: @locale, phrase: phrase) %>
             <tr>
               <td class="translation">
-                <%= hidden_field_tag :"translations[][id]", translation.id, :id => "#{translation.object_id}_id" %>
-                <%= hidden_field_tag :"translations[][phrase_id]", phrase.id, :id => "#{translation.object_id}_phrase_id" %>
-                <%= hidden_field_tag :"translations[][locale_id]", translation.locale_id, :id => "#{translation.object_id}_locale_id" %>
-                <%= text_area_tag :"translations[][text]", format_i18n_text_area_value(translation.text), :class => "locale", :id => "#{translation.object_id}_text", :onfocus => "$(this).up('tr').addClassName('active');", :onblur => "$(this).up('tr').removeClassName('active');" %>
+                <%= hidden_field_tag :"translations[][id]", translation.id, id: "#{translation.object_id}_id" %>
+                <%= hidden_field_tag :"translations[][phrase_id]", phrase.id, id: "#{translation.object_id}_phrase_id" %>
+                <%= hidden_field_tag :"translations[][locale_id]", translation.locale_id, id: "#{translation.object_id}_locale_id" %>
+                <%= text_area_tag :"translations[][text]", format_i18n_text_area_value(translation.text), class: "locale", id: "#{translation.object_id}_text", onfocus: "$(this).up('tr').addClassName('active');", onblur: "$(this).up('tr').removeClassName('active');" %>
               </td>
               <td class="actions">
                 <a class="copy" href="#" tabindex="-1" title="Copy original translation">&larr;</a><br>
@@ -35,7 +37,7 @@
               </td>
               <td class="original">
                 <a name="<%= phrase.category.parameterize %>"></a>
-                <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), :disabled => true %>
+                <%= text_area_tag :"translations[][original_text]", format_i18n_text_area_value(phrase.translations.primary.text), disabled: true %>
 
                 <% if params[:q].present? -%>
                   <%= highlight(format_i18n_value(phrase.translations.primary.text), params[:q]) -%>
@@ -45,20 +47,17 @@
                 <%= boolean_warning if phrase.translations.primary.boolean? -%>
 
                 <span class="key" title="<%= phrase.key %>"><%= params[:k].present? ?
-                highlight(h(truncate(phrase.key, :length => 100)), params[:k]) :
-                h(truncate(phrase.key, :length => 100)) %></span>
+                highlight(h(truncate(phrase.key, length: 100)), params[:k]) :
+                h(truncate(phrase.key, length: 100)) %></span>
               </td>
             </tr>
           <% end %>
         <% end %>
       </table>
-      <div class="table_submit">
-        <p><%= locale_form.submit "Save changes", :class => 'save' %></p>
-      </div>
+
+      <%= render partial: "tolk/locales/phrases_submit_panel", locals: { form: locale_form, phrases: @phrases } %>
+
     <% end %>
-    <div class="paginate">
-      <%= tolk_paginate @phrases %>
-    </div>
   <% else %>
     <p style="text-align: left">No search results.</p>
   <% end %>

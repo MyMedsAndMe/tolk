@@ -1,7 +1,10 @@
+# frozen_string_literal: true
 module Tolk
   class LocalesController < Tolk::ApplicationController
     before_action :find_locale, only: [:show, :all, :update, :updated]
     before_action :ensure_no_primary_locale, only: [:all, :update, :show, :updated]
+
+    helper_method :category_known?
 
     def index
       # HACK: allows to select primary locale
@@ -12,8 +15,9 @@ module Tolk
     def show
       respond_to do |format|
         format.html do
-          @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key)
-          @phrases = @phrases.where(category: params[:category]) if params[:category]
+          @phrases = @locale.phrases_without_translation(params[pagination_param])
+            .where(category: params[:category])
+            .order(:key)
         end
 
         format.atom { @phrases = @locale.phrases_without_translation(params[pagination_param]).order(:key).per(50) }
@@ -32,7 +36,15 @@ module Tolk
     end
 
     def all
-      @phrases = @locale.phrases_with_translation(params[pagination_param])
+      @phrases = Tolk::Phrase.where(category: params[:category])
+        .preload(:translations)
+        .order(:key)
+        .public_send(pagination_method, params[pagination_param])
+      translations = Tolk::Translation.where(locale: @locale, phrase_id: @phrases.select(:id))
+      @phrases.each do |p|
+        p.translation = translations.find { |t| t.phrase_id == p.id }
+      end
+      render :show
     end
 
     def updated
@@ -77,7 +89,7 @@ module Tolk
     private
 
     def find_locale
-      @locale = Tolk::Locale.where('UPPER(name) = UPPER(?)', params[:id]).first!
+      @locale = Tolk::Locale.where("UPPER(name) = UPPER(?)", params[:id]).first!
     end
 
     def locale_params
@@ -88,5 +100,8 @@ module Tolk
       params.permit(translations: [:id, :phrase_id, :locale_id, :text])[:translations]
     end
 
+    def category_known?
+      params[:category].present?
+    end
   end
 end

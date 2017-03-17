@@ -137,7 +137,7 @@ h2,
 h3 {
   font-size: 18px;
   color: #2fadcf;
-  margin: 25px 0 10px;
+  margin: 7px 0 13px;
 }
 
 h2 span,
@@ -221,9 +221,13 @@ span.updated {
 
 div.table_submit {
   background: #f5f5f5;
-  margin: -25px 0 0;
   padding: 12px 15px 15px;
   text-align: left;
+}
+
+div.table_submit > p {
+  width: 49%;
+  display: inline-block;
 }
 
 div.table_submit input.save {
@@ -378,9 +382,12 @@ Pagination
 -------------------------------------------------*/
 
 div.paginate {
-  margin: 15px auto 20px;
   font-size: 12px;
   color: #777;
+  text-align: right;
+  width: 49%;
+  display: inline-block;
+  line-height: 8px;
 }
 
 div.paginate .center-block {
@@ -390,6 +397,11 @@ div.paginate .center-block {
 
 div.paginate ul li {
   float: left;
+}
+
+div.paginate ul li.active a {
+  font-weight: 800;
+  color: black;
 }
 
 div.paginate a,
@@ -427,6 +439,12 @@ div.paginate .disabled {
   margin-top: 5px;
 }
 
+.categories-selector:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 .categories-title {
   padding: 14px;
   margin: 11px 0;
@@ -450,7 +468,8 @@ div.paginate .disabled {
   color: black;
 }
 
-.category > a:hover {
+.category > a:hover,
+.category > a.active {
   color: white;
 }
 
@@ -459,4 +478,12 @@ div.sync-action {
   position: absolute;
   right: 25px;
   bottom: 15px;
+}
+
+.search {
+  margin-bottom: 12px;
+}
+
+.warning-notice {
+  color: red;
 }
