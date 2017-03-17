@@ -36,7 +36,15 @@ module Tolk
     end
 
     def all
-      @phrases = @locale.phrases_with_translation(params[pagination_param])
+      @phrases = Tolk::Phrase.where(category: params[:category])
+        .preload(:translations)
+        .order(:key)
+        .public_send(pagination_method, params[pagination_param])
+      translations = Tolk::Translation.where(locale: @locale, phrase_id: @phrases.select(:id))
+      @phrases.each do |p|
+        p.translation = translations.find { |t| t.phrase_id == p.id }
+      end
+      render :show
     end
 
     def updated

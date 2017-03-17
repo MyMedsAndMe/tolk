@@ -9,6 +9,11 @@
 <%= render partial: "tolk/locales/categories", locals: { locale: @locale, current_category: params[:category] } %>
 
 <% if category_known? %>
+  <h3 class="switch">
+    Phrases missing translation (<%= @locale.count_phrases_without_translation(params[:category]) %>)
+    <span>(<%= link_to "See all translations", all_locale_path(@locale, category: params[:category]) %>)</span>
+  </h3>
+
   <div class="search">
     <%= render partial: "tolk/searches/form", locals: { locale: @locale } %>
   </div>
@@ -27,7 +32,7 @@
           </tr>
           <% @phrases.each do |phrase| %>
             <tr>
-              <% translation = Tolk::Translation.new(locale: @locale, phrase: phrase) %>
+              <% translation = phrase.translation || Tolk::Translation.new(locale: @locale, phrase: phrase) %>
               <td class="translation">
                 <%= hidden_field_tag :"translations[][id]", translation.id, id: "#{translation.object_id}_id" %>
                 <%= hidden_field_tag :"translations[][phrase_id]", phrase.id, id: "#{translation.object_id}_phrase_id" %>
