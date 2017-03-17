@@ -4,22 +4,19 @@
   <span class="notice">Some phrases have changed. <%= link_to "Update translations", updated_locale_path(@locale) %>.</span>
 <% end %>
 
+<%= render partial: "tolk/locales/categories", locals: { locale: @locale, current_category: params[:category] } %>
+
 <div class="search">
   <%= render partial: "tolk/searches/form", locals: { locale: @locale } %>
-</div>
-
-<div class="categories-selector">
-  <ul class="categories">
-    <% @phrases.map(&:category).uniq.each do |category| %>
-      <li class="category"><a href="#<%= category.parameterize %>"><%= category.titleize %></a></li>
-    <% end %>
-  </ul>
 </div>
 
 <div class="translations">
 <% if @phrases.any? %>
   <%= form_for @locale do |locale_form| %>
-        <table class="translations">
+
+    <%= render partial: "tolk/locales/phrases_submit_panel", locals: { form: locale_form, phrases: @phrases } %>
+
+    <table class="translations">
       <tr>
         <th class="translation"><%= @locale.language_name -%></th>
         <th class="actions"></th>
@@ -63,14 +60,9 @@
         <% end %>
       <% end %>
     </table>
-    <div class="table_submit">
-      <p><%= locale_form.submit "Save changes", class: 'save' %></p>
-    </div>
-    <div class="paginate">
-      <div class="center-block">
-        <%= tolk_paginate @phrases %>
-      </div>
-    </div>
+
+    <%= render partial: "tolk/locales/phrases_submit_panel", locals: { form: locale_form, phrases: @phrases } %>
+
   <% end %>
 <% else %>
   <p style="text-align: left">There aren't any completed translations for this locale.</p>

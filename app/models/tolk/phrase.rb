@@ -23,10 +23,10 @@ module Tolk
     attr_accessor :translation
 
     scope :containing_text, ->(q) { q.presence && where(Tolk::Phrase.arel_table[:key].matches("%#{q}%")) }
-    scope :with_category, ->(cat) { cat.presence && where(category_field.eq(cat)) }
+    scope :with_category, ->(cat) { where(category: cat) }
 
     def self.categories
-      Tolk::Phrase.select(:category).distinct.pluck(:category)
+      Tolk::Phrase.select(:category).order(:category).distinct.pluck(:category)
     end
   end
 end
