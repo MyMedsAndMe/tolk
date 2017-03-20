@@ -80,6 +80,8 @@ module Tolk
 
         return if translations.empty?
         translations.each do |key, text|
+          next unless store?(text)
+
           phrase = Tolk::Phrase.find_or_create_by(key: key) do |m|
             m.category = category
           end
@@ -88,9 +90,7 @@ module Tolk
           translation = Tolk::Translation.find_or_initialize_by(locale: locale, phrase: phrase)
 
           translation.sync_in_progress = true
-          if translation.pristine?
-            translation.text = store?(text) ? text.presence : Tolk::Translation::NIL_TEXT
-          end
+          translation.text = text.presence if translation.pristine?
           translation.save!
         end
       end
