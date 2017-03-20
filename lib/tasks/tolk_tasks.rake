@@ -8,8 +8,6 @@ namespace :tolk do
 
   desc "Add database tables, copy over the assets, and import existing translations"
   task setup: :environment do
-    system "rails g tolk:install"
-
     Rake::Task["db:migrate"].invoke
     Rake::Task["tolk:sync"].invoke
   end
@@ -42,5 +40,13 @@ namespace :tolk do
     bad_translations.each do |bt|
       puts "#{bt.phrase.key} - #{bt.text}"
     end
+  end
+
+  desc "[WARNING] Cleans up Tolk tables."
+  task clean: :environment do
+    Tolk::Translation.delete_all
+    Tolk::Phrase.delete_all
+    Tolk::Locale.delete_all
+    puts "Tolk data was removed."
   end
 end
