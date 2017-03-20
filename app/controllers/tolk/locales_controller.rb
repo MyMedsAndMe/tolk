@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Tolk
   class LocalesController < Tolk::ApplicationController
-    before_action :find_locale, only: [:show, :all, :update, :updated]
+    before_action :find_locale, only: [:show, :all, :completed, :update, :updated]
     before_action :ensure_no_primary_locale, only: [:all, :update, :show, :updated]
 
     helper_method :category_known?
@@ -37,13 +37,21 @@ module Tolk
 
     def all
       @phrases = Tolk::Phrase.where(category: params[:category])
-        .preload(:translations)
         .order(:key)
         .public_send(pagination_method, params[pagination_param])
       translations = Tolk::Translation.where(locale: @locale, phrase_id: @phrases.select(:id))
-      @phrases.each do |p|
-        p.translation = translations.find { |t| t.phrase_id == p.id }
-      end
+      @phrases.each { |p| p.translation = translations.find { |t| t.phrase_id == p.id } }
+      render :show
+    end
+
+    def completed
+      @phrases = Tolk::Phrase.joins(:translations)
+        .with_category(params[:category])
+        .merge(Tolk::Translation.where(locale: @locale))
+        .order(:key)
+        .public_send(pagination_method, params[pagination_param])
+      translations = Tolk::Translation.where(locale: @locale, phrase_id: @phrases.select(:id))
+      @phrases.each { |p| p.translation = translations.find { |t| t.phrase_id == p.id } }
       render :show
     end
 

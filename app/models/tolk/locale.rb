@@ -138,6 +138,14 @@ module Tolk
       result.rows.first.first.to_i
     end
 
+    def count_all_phrases(category = nil)
+      Tolk::Phrase.with_category(category).count
+    end
+
+    def count_phrases_with_translation(category = nil)
+      Tolk::Translation.joins(:phrase).references(:phrase).where(locale: self).merge(Tolk::Phrase.with_category(category)).count
+    end
+
     def translation_percent
       coef = 1 - count_phrases_without_translation.to_f / Tolk::Phrase.count.to_f
       (coef * 100).round(2)

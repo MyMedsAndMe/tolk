@@ -8,6 +8,7 @@ Tolk::Engine.routes.draw do
   resources :locales do
     member do
       get :all
+      get :completed
       get :updated
     end
   end
