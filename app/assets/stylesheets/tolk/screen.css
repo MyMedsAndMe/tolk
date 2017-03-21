@@ -399,7 +399,8 @@ div.paginate ul li {
   float: left;
 }
 
-div.paginate ul li.active a {
+div.paginate ul li.active a,
+a.active {
   font-weight: 800;
   color: black;
 }
@@ -486,4 +487,8 @@ div.sync-action {
 
 .warning-notice {
   color: red;
+}
+
+.completeness-select-panel {
+  margin: 13px 0;
 }
