@@ -9,4 +9,5 @@
   <%= text_field_tag :k, params[:k] %>
 
   <%= submit_tag "Search", :name => nil %>
+  <%= button_tag "Reset", type: :reset, onclick: "location.href='#{all_locale_path(@locale, category: params[:category])}'" %>
 <% end %>

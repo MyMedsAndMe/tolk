@@ -4,6 +4,7 @@ Tolk::Engine.routes.draw do
   post "/dump_all" => "locales#dump_all", as: :dump_all_locales
   post "sync_locales" => "locales#sync", as: :sync_locales
   get "/stats" => "locales#stats"
+  get "/export" => "export#show"
 
   resources :locales do
     member do

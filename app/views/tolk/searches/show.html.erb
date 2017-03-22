@@ -1,12 +1,23 @@
 <%= render partial: "tolk/locales/categories", locals: { locale: @locale, current_category: params[:category] } %>
 
-<h3 class="switch">
-  Phrases missing translation (<%= @locale.count_phrases_without_translation(params[:category]) %>)
-  <span>(<%= link_to "See all translations", all_locale_path(@locale, category: params[:category]) %>)</span>
-</h3>
-
 <div class="search">
   <%= render partial: "form", locals: { locale: @locale } %>
+</div>
+
+<div class="completeness-select-panel">
+  <span>
+    <%= link_to "All phrases (#{@locale.count_all_phrases(params[:category])})",
+                all_locale_path(@locale, category: params[:category]),
+                class: "active" %>
+  </span>
+  <span>
+    <%= link_to "Phrases missing translation (#{@locale.count_phrases_without_translation(params[:category])})",
+                locale_path(@locale, category: params[:category]) %>
+  </span>
+  <span>
+    <%= link_to "Completed translations (#{@locale.count_phrases_with_translation(params[:category])})",
+                completed_locale_path(@locale, category: params[:category]) %>
+  </span>
 </div>
 
 <div class="translations">
