@@ -27,6 +27,8 @@
     </p>
   <% end %>
 
+  <span class="export"><%= link_to "Download localisation data", export_path %></span>
+
   <div class="sync-action">
     <%= button_to "Sync Locales", sync_locales_path, method: :post, class: "apply" %>
   </div>

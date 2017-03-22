@@ -492,3 +492,8 @@ div.sync-action {
 .completeness-select-panel {
   margin: 13px 0;
 }
+
+.new_locale {
+  display: inline-block;
+  margin-right: 23px;
+}
