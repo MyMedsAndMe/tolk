@@ -39,6 +39,8 @@ module Tolk
     # compressed file.
     def gzip(tarfile)
       gz = StringIO.new
+      # HACK: As we have ApplicationModule included into Object - I need to remove #path from StringIO instance
+      gz.class.instance_eval { undef_method :path } if gz.respond_to? :path
       begin
         z = Zlib::GzipWriter.new(gz)
         z.write tarfile.string
