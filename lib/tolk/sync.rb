@@ -82,10 +82,8 @@ module Tolk
         translations.each do |key, text|
           next unless store?(text)
 
-          phrase = Tolk::Phrase.find_or_create_by(key: key) do |m|
-            m.category = category
-          end
-          phrase.update_column(:obsolete, false)
+          phrase = Tolk::Phrase.find_or_create_by(key: key)
+          phrase.update_columns(obsolete: false, category: category)
 
           translation = Tolk::Translation.find_or_initialize_by(locale: locale, phrase: phrase)
 
