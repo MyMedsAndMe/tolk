@@ -10,6 +10,8 @@ module Tolk
         Tolk::Phrase.update_all(obsolete: true)
         locales = collect_locales
         collect_translation_files(locales)
+        clean_obsolete_translation
+      ensure
         # NOTE: Have to use fresh file listing
         reload_translations(Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")])
       end
@@ -26,6 +28,8 @@ module Tolk
         locales.each do |locale|
           print "Loading #{locale.name} locale..."
           translation_files.each do |filename|
+            next unless File.exist?(filename)
+
             category = category_name(File.basename(filename))
             reload_translations(filename)
             translations = flat_hash(I18n.backend.send(:translations)[locale.name.to_sym])
@@ -36,13 +40,19 @@ module Tolk
       end
 
       def translation_files
-        @translation_files ||= Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
+        Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
       end
 
       def reload_translations(paths)
         I18n.backend.reload! if I18n.backend.initialized?
         I18n.backend.instance_variable_set(:@initialized, true)
         I18n.backend.load_translations(Array(paths))
+      rescue I18n::InvalidLocaleData => e
+        # NOTE: If YAML file doesn't exists, I18n::InvalidLocaleData error will be raised.
+        #       re-raise an exception in case of error is not related to missing file.
+        raise unless e.message.include? "Errno::ENOENT: No such file or directory"
+        paths = Array(paths.clone).select(&File.method(:exist?))
+        retry unless paths.empty?
       end
 
       private
@@ -91,6 +101,12 @@ module Tolk
           translation.text = text.presence if translation.pristine?
           translation.save!
         end
+      end
+
+      def clean_obsolete_translation
+        obsolete_phrases = Tolk::Phrase.where(obsolete: true)
+        Tolk::Translation.where(phrase_id: obsolete_phrases.select(:id)).delete_all
+        obsolete_phrases.delete_all
       end
 
       def store?(value)
