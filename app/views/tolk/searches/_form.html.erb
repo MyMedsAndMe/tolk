@@ -1,13 +1,13 @@
-<%= form_tag search_path, :method => :get do %>
+<%= form_tag search_path, :method => :get, class: "form-inline" do %>
   <%= hidden_field_tag :tolk_locale, locale.name %>
   <%= hidden_field_tag :category, params[:category] %>
   Search for
   <%= scope_selector_for(@locale) %>
   phrase:
-  <%= text_field_tag :q, params[:q] %>
+  <%= text_field_tag :q, params[:q], class: "form-control" %>
   within key:
-  <%= text_field_tag :k, params[:k] %>
+  <%= text_field_tag :k, params[:k], class: "form-control" %>
 
-  <%= submit_tag "Search", :name => nil %>
-  <%= button_tag "Reset", type: :reset, onclick: "location.href='#{all_locale_path(@locale, category: params[:category])}'" %>
+  <%= submit_tag "Search", :name => nil, :class => "btn-neutral btn" %>
+  <%= button_tag "Reset", type: :reset, onclick: "location.href='#{all_locale_path(@locale, category: params[:category])}'", :class => "btn-neutral btn" %>
 <% end %>

@@ -3,7 +3,7 @@
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>Tolk</title>
+  <title>LMT</title>
 
   <%= stylesheet_link_tag "tolk/application" %>
 
@@ -13,7 +13,15 @@
 <body>
   <div id="container">
     <div id="head">
-      <h1><span class="home"><%= link_to "Tolk", root_path %></span><% if @locale.present? %><span class="locale"><%= link_to @locale.language_name, locale_path(@locale) %></span><% end %><span class="locale"><%= button_to "Apply Changes", dump_all_locales_path, :method => :post, :class => "apply" %></span></h1>
+      <h1>
+        <span class="home"><%= link_to "LMT", root_path %></span>
+        <% if @locale.present? %>
+          <span class="locale"><%= link_to @locale.language_name, locale_path(@locale) %></span>
+        <% end %>
+        <span class="locale">
+          <%= button_to "Publish Changes", dump_all_locales_path, :method => :post, :class => "apply", :data => {:confirmation_message => "You are about to publish your changes.\nDo you want to continue?"} %>
+        </span>
+      </h1>
       <span class="main-app-link"><%= link_to "Main application", main_app.root_path %></span>
     </div>
     <%= yield %>

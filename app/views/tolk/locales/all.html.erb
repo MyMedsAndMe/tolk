@@ -16,7 +16,7 @@
 
     <%= render partial: "tolk/locales/phrases_submit_panel", locals: { form: locale_form, phrases: @phrases } %>
 
-    <table class="translations">
+    <table class="translations table table-stripped">
       <tr>
         <th class="translation"><%= @locale.language_name -%></th>
         <th class="actions"></th>
