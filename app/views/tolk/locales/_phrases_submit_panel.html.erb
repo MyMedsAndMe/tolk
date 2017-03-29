@@ -1,11 +1,16 @@
 <div class="table_submit">
-  <p>
-    <%= form.submit "Save changes", class: "save" %>
-    <span class="warning-notice">Please make sure your work is saved every 15 minutes!</span>
-  </p>
-  <div class="paginate">
+
+  <div class="paginate left">
     <div class="center-block">
       <%= tolk_paginate phrases %>
     </div>
   </div>
+  <div class="center">
+    <span class="warning-notice">Please make sure your work is saved every 15 minutes!</span>
+  </div>
+  <p class="right">
+
+    <%= form.submit "Save changes", class: "save btn btn-submit" %>
+
+  </p>
 </div>

@@ -43,7 +43,7 @@ module Tolk
 
     def scope_selector_for(locale)
       select_tag 'scope', options_for_select([[Tolk::Locale.primary_locale.language_name, "origin"],
-                                              [locale.language_name, "target"]], params[:scope])
+                                              [locale.language_name, "target"]], params[:scope]), class: "form-control"
     end
   end
 end
