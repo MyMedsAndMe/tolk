@@ -25,17 +25,19 @@ module Tolk
       end
 
       def collect_translation_files(locales)
-        locales.each do |locale|
-          print "Loading #{locale.name} locale..."
-          translation_files.each do |filename|
-            next unless File.exist?(filename)
+        ActiveRecord::Base.logger.silence do
+          locales.each do |locale|
+            print "Loading #{locale.name} locale... "
+            translation_files.each do |filename|
+              next unless File.exist?(filename)
 
-            category = category_name(File.basename(filename))
-            reload_translations(filename)
-            translations = flat_hash(I18n.backend.send(:translations)[locale.name.to_sym])
-            sync_phrases(locale, translations, category)
+              category = category_name(File.basename(filename))
+              reload_translations(filename)
+              translations = flat_hash(I18n.backend.send(:translations)[locale.name.to_sym])
+              sync_phrases(locale, translations, category)
+            end
+            puts "done."
           end
-          puts "done."
         end
       end
 
