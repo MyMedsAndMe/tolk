@@ -7,6 +7,7 @@ module Tolk
 
     cattr_accessor :authenticator
     before_action :authenticate
+    before_action :force_english
 
     def authenticate
 #      self.authenticator.bind(self).call if self.authenticator && self.authenticator.respond_to?(:call)
@@ -16,6 +17,12 @@ module Tolk
     def ensure_no_primary_locale
       # HACK: would like to allow to edit primary locale
       # redirect_to locales_path if @locale.primary?
+    end
+
+    private
+
+    def force_english
+      I18n.locale = :en
     end
   end
 end
