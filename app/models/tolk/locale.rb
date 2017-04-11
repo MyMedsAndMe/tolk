@@ -243,11 +243,15 @@ module Tolk
     def hash_from_records(records)
       records.each_with_object({}) do |translation, locale|
         if translation.phrase.key.include?(".")
-          locale.deep_merge!(unsquish(translation.phrase.key, translation.value))
+          locale.deep_merge!(unsquish(translation.phrase.key, safe_value(translation.value)))
         else
-          locale[translation.phrase.key] = translation.value
+          locale[translation.phrase.key] = safe_value(translation.value)
         end
       end
+    end
+
+    def safe_value(value)
+      value.presence || " "
     end
 
     def remove_invalid_translations_from_target
