@@ -99,8 +99,10 @@ module Tolk
 
           translation = Tolk::Translation.find_or_initialize_by(locale: locale, phrase: phrase)
 
+          next unless translation.pristine?
+
           translation.sync_in_progress = true
-          translation.text = text.presence if translation.pristine?
+          translation.text = (text.presence || Tolk::Translation::NIL_TEXT)
           translation.save!
         end
       end
@@ -112,7 +114,7 @@ module Tolk
       end
 
       def store?(value)
-        value.present? && !marked_for_translation?(value)
+        !marked_for_translation?(value)
       end
 
       def marked_for_translation?(value)
