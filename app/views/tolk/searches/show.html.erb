@@ -5,18 +5,18 @@
 </div>
 
 <div class="completeness-select-panel">
+  <span>Display Phrases: </span>
   <span>
-    <%= link_to "All phrases (#{@locale.count_all_phrases(params[:category])})",
-                all_locale_path(@locale, category: params[:category]),
-                class: "active" %>
+    <%= link_to "All (#{@locale.count_all_phrases(params[:category])})",
+                all_locale_path(@locale, category: params[:category]) %>
   </span>
   <span>
-    <%= link_to "Phrases missing translation (#{@locale.count_phrases_without_translation(params[:category])})",
-                locale_path(@locale, category: params[:category]) %>
-  </span>
-  <span>
-    <%= link_to "Completed translations (#{@locale.count_phrases_with_translation(params[:category])})",
+    <%= link_to "Translated (#{@locale.count_phrases_with_translation(params[:category])})",
                 completed_locale_path(@locale, category: params[:category]) %>
+  </span>
+  <span>
+    <%= link_to "Untranslated (#{@locale.count_phrases_without_translation(params[:category])})",
+                locale_path(@locale, category: params[:category]) %>
   </span>
 </div>
 
