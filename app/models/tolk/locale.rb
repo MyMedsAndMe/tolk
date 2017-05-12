@@ -59,12 +59,23 @@ module Tolk
         # HACK: We allow to edit primary locale. Need to dump it.
         all.each { |locale| locale.dump(*args) }
       ensure
+        dump_js_localisation
         I18n.load_path = I18n.load_path + Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
         I18n.backend.send :init_translations
       end
 
       def dump_yaml(name, *args)
         where(name: name).first.dump(*args)
+      end
+
+      def dump_js_localisation
+        return if Rails.env.development?
+        # NOTE: I18n-js 2.x gem
+        SimplesIdeias::I18n.export! if Object.const_defined?("SimplesIdeias::I18n")
+        # NOTE: I18n-js master
+        I18n::JS.export if Object.const_defined?("I18n::JS")
+
+        system("./bundle", "exec", "rake", "assets:precompile") if File.exist?("./bundle")
       end
 
       def special_key_or_prefix?(prefix, key)
@@ -251,7 +262,10 @@ module Tolk
     end
 
     def safe_value(value)
-      value.presence || " "
+      return " " unless value.presence
+
+      object = Tolk::YAML.load(value.presence)
+      object.is_a?(Array) ? object : value.presence
     end
 
     def remove_invalid_translations_from_target
