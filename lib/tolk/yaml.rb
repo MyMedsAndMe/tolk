@@ -12,6 +12,10 @@ module Tolk
       else # syck
         SafeYAML.load(yaml, SAFE_YAML_OPTIONS)
       end
+    rescue => e
+      # NOTE: was trying to parse a value with characters like `:`.
+      #       If YAML parser is not able to parse a string - return value as-is.
+      yaml
     end
 
     def self.load_file(filename)
