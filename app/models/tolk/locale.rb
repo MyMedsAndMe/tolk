@@ -79,7 +79,7 @@ module Tolk
 
         system({ "RAILS_GROUPS" => "assets", "RAILS_ENV" => Rails.env },
                "./bundle", "exec", "rake", "assets:clobber", "assets:precompile") if File.exist?("./bundle")
-        spawn("touch", Rails.root.join("tmp", "restart.txt"))
+        spawn("touch", Rails.root.join("tmp", "restart.txt").to_s)
       end
 
       def special_key_or_prefix?(prefix, key)
