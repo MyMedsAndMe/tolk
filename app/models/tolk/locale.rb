@@ -77,7 +77,8 @@ module Tolk
         # NOTE: I18n-js master
         I18n::JS.export if Object.const_defined?("I18n::JS")
 
-        system({ "RAILS_GROUPS"=>"assets" }, "./bundle", "exec", "rake", "assets:clobber", "assets:precompile") if File.exist?("./bundle")
+        system({ "RAILS_GROUPS" => "assets", "RAILS_ENV" => Rails.env },
+               "./bundle", "exec", "rake", "assets:clobber", "assets:precompile") if File.exist?("./bundle")
         spawn("touch", Rails.root.join("tmp", "restart.txt"))
       end
 
