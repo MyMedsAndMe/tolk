@@ -269,10 +269,7 @@ module Tolk
       return " " unless value.presence
 
       object = Tolk::YAML.load(value.presence)
-      case object
-      when Array, Hash then object
-      else value.presence
-      end
+      object.is_a?(Array) ? object : value.presence
     end
 
     def remove_invalid_translations_from_target
