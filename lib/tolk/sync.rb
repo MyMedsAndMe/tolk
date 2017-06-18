@@ -76,7 +76,7 @@ module Tolk
         data.each do |key, value|
           current_prefix = prefix.present? ? "#{prefix}.#{key}" : key
 
-          if !value.is_a?(Hash) || Tolk::Locale.pluralization_data?(value)
+          if !value.is_a?(Hash)
             result[current_prefix] = value.respond_to?(:stringify_keys) ? value.stringify_keys : value
           else
             flat_hash(value, current_prefix, result)
