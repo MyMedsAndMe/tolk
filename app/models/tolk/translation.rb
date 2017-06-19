@@ -93,7 +93,7 @@ module Tolk
 
       # delete special i18n variable used for pluralization itself (might not be used in all values of
       # the pluralization keys, but is essential to use pluralization at all)
-      if search_in.is_a?(Hash) && Tolk::Locale.pluralization_data?(search_in)
+      if search_in.is_a?(Hash)
         variables.delete_if {|v| v == 'count' }
       else
         variables
