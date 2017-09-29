@@ -4,6 +4,7 @@ module Tolk
     ARCHIVE_NAME_PATTERN = "localisation-data-%s.tar.gz"
 
     def show
+      Tolk::Locale.dump_all_to_yaml
       datum = Tolk::Archive.gzip(Tolk::Archive.tar(Rails.root.join("config", "locales")))
       send_data datum.string,
                 filename: format(ARCHIVE_NAME_PATTERN, Time.zone.now.iso8601.tr(":", "-")),

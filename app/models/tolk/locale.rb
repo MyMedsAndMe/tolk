@@ -72,6 +72,14 @@ module Tolk
         end
       end
 
+      def dump_all_to_yaml(*args)
+        # HACK: We allow to edit primary locale. Need to dump it.
+        all.each { |locale| locale.dump(*args) }
+      ensure
+        yaml_files = I18n.load_path + Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
+        yaml_files = yaml_files.select { |f| File.exist?(f) }
+      end
+
       def dump_yaml(name, *args)
         where(name: name).first.dump(*args)
       end
