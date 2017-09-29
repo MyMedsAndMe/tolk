@@ -88,7 +88,11 @@ module Tolk
     end
 
     def sync
+      I18n.backend = I18n::Backend::Simple.new
+      I18n.backend.reload!
       Tolk::Locale.sync!
+      I18n.backend = I18n::Backend::ActiveRecord.new
+      I18n.backend.reload!
       redirect_to root_path
     end
 
