@@ -56,30 +56,30 @@ module Tolk
       end
 
       def dump_all(*args)
+        ActiveRecord::Base.transaction do
+          m3_translation = I18n::Backend::ActiveRecord::Translation
+          m3_translation.destroy_all
+
+          query = self.includes(:translations)
+
+          query.each do |locale|
+            locale.translations.each do |t|
+              m3_translation.create!(locale: locale.name, key: t.phrase.key, value: t.text)
+            end
+          end
+        end
+      end
+
+      def dump_all_to_yaml(*args)
         # HACK: We allow to edit primary locale. Need to dump it.
         all.each { |locale| locale.dump(*args) }
       ensure
         yaml_files = I18n.load_path + Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
         yaml_files = yaml_files.select { |f| File.exist?(f) }
-        I18n.load_path = yaml_files
-        I18n.backend.send :init_translations
-        dump_js_localisation
       end
 
       def dump_yaml(name, *args)
         where(name: name).first.dump(*args)
-      end
-
-      def dump_js_localisation
-        return if Rails.env.development?
-        # NOTE: I18n-js 2.x gem
-        SimplesIdeias::I18n.export! if Object.const_defined?("SimplesIdeias::I18n")
-        # NOTE: I18n-js master
-        I18n::JS.export if Object.const_defined?("I18n::JS")
-
-        system({ "RAILS_GROUPS" => "assets", "RAILS_ENV" => Rails.env },
-               "./bundle", "exec", "rake", "assets:clobber", "assets:precompile") if File.exist?("./bundle")
-        spawn("touch", Rails.root.join("tmp", "restart.txt").to_s)
       end
 
       def special_key_or_prefix?(prefix, key)

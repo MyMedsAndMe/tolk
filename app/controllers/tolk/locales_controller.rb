@@ -67,8 +67,6 @@ module Tolk
 
     def dump_all
       Tolk::Locale.dump_all
-      I18n.reload!
-      I18n::JS.export if defined? I18n::JS
       redirect_to request.referrer
     end
 
@@ -90,7 +88,11 @@ module Tolk
     end
 
     def sync
+      I18n.backend = I18n::Backend::Simple.new
+      I18n.backend.reload!
       Tolk::Locale.sync!
+      I18n.backend = I18n::Backend::ActiveRecord.new
+      I18n.backend.reload!
       redirect_to root_path
     end
 
