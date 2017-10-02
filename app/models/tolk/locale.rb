@@ -67,8 +67,6 @@ module Tolk
               m3_translation.create!(locale: locale.name, key: t.phrase.key, value: t.text)
             end
           end
-
-          dump_js_localisation
         end
       end
 
@@ -82,12 +80,6 @@ module Tolk
 
       def dump_yaml(name, *args)
         where(name: name).first.dump(*args)
-      end
-
-      def dump_js_localisation
-        system({ "RAILS_GROUPS" => "assets", "RAILS_ENV" => Rails.env },
-               "./bundle", "exec", "rake", "assets:clobber", "assets:precompile") if File.exist?("./bundle")
-        spawn("touch", Rails.root.join("tmp", "restart.txt").to_s)
       end
 
       def special_key_or_prefix?(prefix, key)
