@@ -64,7 +64,7 @@ module Tolk
 
           query.each do |locale|
             locale.translations.each do |t|
-              m3_translation.create!(locale: locale.name, key: t.phrase.key, value: t.text)
+              m3_translation.create!(locale: locale.name, key: t.phrase.key, value: locale.safe_value(t.value))
             end
           end
         end
@@ -91,6 +91,20 @@ module Tolk
       def pluralization_data?(data)
         keys = data.keys.map(&:to_s)
         keys.all? {|k| PLURALIZATION_KEYS.include?(k) }
+      end
+
+      def rename(old_name, new_name)
+        if old_name.blank? || new_name.blank?
+          "You need to provide both names, aborting."
+        else
+          if locale = where(name: old_name).first
+            locale.name = new_name
+            locale.save
+            "Locale ' #{old_name}' was renamed '#{new_name}'"
+          else
+            "Locale with name '#{old_name}' not found."
+          end
+        end
       end
     end
 
@@ -239,18 +253,11 @@ module Tolk
       translations
     end
 
-    def self.rename(old_name, new_name)
-      if old_name.blank? || new_name.blank?
-        "You need to provide both names, aborting."
-      else
-        if locale = where(name: old_name).first
-          locale.name = new_name
-          locale.save
-          "Locale ' #{old_name}' was renamed '#{new_name}'"
-        else
-          "Locale with name '#{old_name}' not found."
-        end
-      end
+    def safe_value(value)
+      return " " if value.blank? || Tolk::Translation::NIL_TEXT == value
+
+      object = Tolk::YAML.load(value.presence)
+      object.is_a?(Array) ? object : value.presence
     end
 
     private
@@ -263,13 +270,6 @@ module Tolk
           locale[translation.phrase.key] = safe_value(translation.value)
         end
       end
-    end
-
-    def safe_value(value)
-      return " " unless value.presence
-
-      object = Tolk::YAML.load(value.presence)
-      object.is_a?(Array) ? object : value.presence
     end
 
     def remove_invalid_translations_from_target
