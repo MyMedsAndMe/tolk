@@ -33,7 +33,7 @@ module Tolk
 
         @block_xxx_en_yml_locale_files = true # keep compat with older versions
 
-        @dump_path = Proc.new { "#{Rails.application.root}/config/locales" }
+        @dump_path = Proc.new { "#{Rails.application.root}/#{Tolk::Locale::DEFAULT_EXPORT_PATH}" }
 
         @mapping = {
           'ar'    => 'Arabic',

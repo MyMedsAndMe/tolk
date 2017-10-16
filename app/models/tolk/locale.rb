@@ -6,7 +6,8 @@ module Tolk
     include Tolk::Pagination::Methods
 
     CUSTOMER_PREFIX = "customer".freeze
-    DEFAULT_PATH_TEMPLATE = "config/locales/%{name}.yml".freeze
+    DEFAULT_EXPORT_PATH = "tolk_export".freeze
+    DEFAULT_PATH_TEMPLATE = "#{DEFAULT_EXPORT_PATH}/%{name}.yml".freeze
 
     self.table_name = "tolk_locales"
 
@@ -73,9 +74,6 @@ module Tolk
       def dump_all_to_yaml(*args)
         # HACK: We allow to edit primary locale. Need to dump it.
         all.each { |locale| locale.dump(*args) }
-      ensure
-        yaml_files = I18n.load_path + Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
-        yaml_files = yaml_files.select { |f| File.exist?(f) }
       end
 
       def dump_yaml(name, *args)
