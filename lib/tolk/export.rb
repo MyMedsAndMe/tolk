@@ -9,6 +9,8 @@ module Tolk
     end
 
     def dump
+      dirname = File.dirname(destination)
+      FileUtils.mkdir_p(dirname)
       File.open(destination, "w+") do |file|
         file.write(Tolk::YAML.dump(data))
       end
