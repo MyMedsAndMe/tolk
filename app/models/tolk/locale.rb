@@ -59,9 +59,9 @@ module Tolk
       def dump_all(*args)
         ActiveRecord::Base.transaction do
           m3_translation = I18n::Backend::ActiveRecord::Translation
-          m3_translation.destroy_all
+          m3_translation.delete_all
 
-          query = self.includes(:translations)
+          query = self.includes(:translations, :phrases)
 
           query.each do |locale|
             locale.translations.each do |t|
