@@ -1,4 +1,5 @@
-class TolkMigrateTolk < ActiveRecord::Migration
+# frozen_string_literal: true
+class TolkMigrateTolk < ActiveRecord::Migration[4.2]
   def self.up
     create_table "tolk_locales", :force => true do |t|
       t.string   "name"
