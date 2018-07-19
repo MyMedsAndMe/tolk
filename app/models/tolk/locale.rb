@@ -16,8 +16,8 @@ module Tolk
       @dump_path ||= Tolk.config.dump_path.is_a?(Proc) ? instance_eval(&Tolk.config.dump_path) : Tolk.config.dump_path
     end
 
-    has_many :phrases, through: :translations, class_name: "Tolk::Phrase"
     has_many :translations, class_name: "Tolk::Translation", dependent: :destroy
+    has_many :phrases, through: :translations, class_name: "Tolk::Phrase"
 
     accepts_nested_attributes_for :translations, reject_if: proc { |attributes| attributes["text"].blank? }
     before_validation :remove_invalid_translations_from_target, on: :update
@@ -140,7 +140,7 @@ module Tolk
     def phrases_without_translation(page = nil)
       phrases = Tolk::Phrase.all.order("tolk_phrases.key ASC")
 
-      existing_ids = self.translations(select: "tolk_translations.phrase_id").map(&:phrase_id).uniq
+      existing_ids = self.translations.select("tolk_translations.phrase_id").map(&:phrase_id).uniq
       phrases = phrases.where("tolk_phrases.id NOT IN (?)", existing_ids) if existing_ids.present?
 
       result = phrases.public_send(pagination_method, page)
