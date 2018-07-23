@@ -22,7 +22,10 @@ module Tolk
     before_save :set_primary_updated
     before_save :set_previous_text
 
-    scope :containing_text, ->(q) { q.presence && where(Tolk::Translation.arel_table[:text].matches("%#{q}%")) }
+    scope :containing_text, (lambda do |q|
+      code = Arel::Nodes::NamedFunction.new("CAST", [arel_table[:text].as("text")])
+      q.presence && where(code.matches("%#{q}%"))
+    end)
 
     attr_accessor :primary
     before_validation :fix_text_type, unless: proc { |r| r.primary }
