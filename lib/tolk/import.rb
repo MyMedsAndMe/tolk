@@ -50,8 +50,8 @@ module Tolk
     def read_locale_file
       locale_file = "#{self.locales_config_path}/#{self.class::CUSTOMER_PREFIX}.#{self.name}.yml"
 
-      unless File.exists?(locale_file)
-        puts "[WARNING] Locale file #{self.class::CUSTOMER_PREFIX}.#{locale_file} does not exists"
+      unless File.exist?(locale_file)
+        puts "[WARNING] Locale file #{self.class::CUSTOMER_PREFIX}.#{locale_file} does not exist"
         return nil
       end
 

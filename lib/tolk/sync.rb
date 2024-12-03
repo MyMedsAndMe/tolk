@@ -50,7 +50,7 @@ module Tolk
         I18n.backend.instance_variable_set(:@initialized, true)
         I18n.backend.load_translations(Array(paths))
       rescue I18n::InvalidLocaleData => e
-        # NOTE: If YAML file doesn't exists, I18n::InvalidLocaleData error will be raised.
+        # NOTE: If YAML file doesn't exist, I18n::InvalidLocaleData error will be raised.
         #       re-raise an exception in case of error is not related to missing file.
         raise unless e.message.include? "Errno::ENOENT: No such file or directory"
         paths = Array(paths.clone).select(&File.method(:exist?))
