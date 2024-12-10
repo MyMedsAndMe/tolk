@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'pry-byebug'
 
 
-  if File.exists?('UPGRADING')
+  if File.exist?('UPGRADING')
     s.post_install_message = File.read("UPGRADING")
   end
 
