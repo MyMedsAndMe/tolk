@@ -11,8 +11,8 @@ module Tolk
     belongs_to :phrase, class_name: "Tolk::Phrase"
     belongs_to :locale, class_name: "Tolk::Locale"
 
-    serialize :text
-    serialize :previous_text
+    serialize :text, coder: YAML
+    serialize :previous_text, coder: YAML
 
     validate :validate_text_not_nil, if: proc { |r| r.primary.blank? && !r.explicit_nil && !r.boolean? }
     validate :check_matching_variables, if: proc { |tr| tr.primary_translation.present? }
